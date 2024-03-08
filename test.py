@@ -27,7 +27,6 @@ import pandas as pd
 import numpy as np
 
 # Create a DataFrame with 1000 rows and 5 columns of random numbers
-data = pd.DataFrame(np.random.randn(1000, 4), columns=list('ABCD'))
-
+data = pd.DataFrame(np.random.uniform(5, 10, size=(300, 4)), columns=list('ABCD'))
 # Save the DataFrame to a CSV file
 data.to_csv('your_data.csv', index=False)
