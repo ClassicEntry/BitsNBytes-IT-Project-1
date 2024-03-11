@@ -73,7 +73,7 @@ app.layout = html.Div(
 def update_dropdown(contents, remove_duplicates, fill_na):
     if contents is not None:
         # Only use the first file
-        content_type, content_string = contents[0].split(",")
+        _, content_string = contents[0].split(",")
         decoded = base64.b64decode(content_string)
         data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
 
@@ -93,7 +93,7 @@ def update_visualization(
 ):
     if contents is not None and selected_column is not None:
         # Only use the first file
-        content_type, content_string = contents[0].split(",")
+        _, content_string = contents[0].split(",")
         decoded = base64.b64decode(content_string)
         data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
 
@@ -131,7 +131,7 @@ def update_visualization(
 def update_summary_stats(contents, remove_duplicates, fill_na):
     if contents is not None:
         # Only use the first file
-        content_type, content_string = contents[0].split(",")
+        _, content_string = contents[0].split(",")
         decoded = base64.b64decode(content_string)
         data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
 
@@ -165,7 +165,7 @@ dcc.Download(id="download-data"),
 def export_data(n_clicks, contents, remove_duplicates, fill_na):
     if n_clicks > 0 and contents is not None:
         # Only use the first file
-        content_type, content_string = contents[0].split(",")
+        _, content_string = contents[0].split(",")
         decoded = base64.b64decode(content_string)
         data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
 
