@@ -13,23 +13,20 @@ The main components of the application include:
 To run the application, execute this script. The application will run on a local server in debug mode.
 """
 
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output
+import io
+from dash import Dash, dcc, html, Output, Input, dash_table
+import dash_bootstrap_components as dbc
+import plotly.express as px
 import pandas as pd
-from io import StringIO
 import base64
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import dash_table
-import numpy as np
-import os
-from dash.exceptions import PreventUpdate
+import numpy as np  
+from io import StringIO
 
 # Create a Dash application
-app = dash.Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Define the layout of the application
 
