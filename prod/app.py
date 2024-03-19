@@ -1,5 +1,6 @@
 from dash import Dash, dcc, html, Output, Input, dash_table
 import dash
+import dash_bootstrap_components as dbc
 import plotly.express as px
 
 px.defaults.template = "plotly_dark"
@@ -9,8 +10,9 @@ external_css = [
 ]
 
 app = Dash(
-    __name__, pages_folder="services", use_pages=True, external_stylesheets=external_css,
+    __name__, pages_folder="services", use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP],
 )
+
 
 app.layout = html.Div(
     [

@@ -68,6 +68,9 @@ def update_plot(data, column, plot_type):
         return dash.no_update
     df = pd.DataFrame(data)  # Convert the list of dicts back to a DataFrame
 
+    # Initialize fig as an empty figure
+    fig = go.Figure()
+
     # Create the plot
     if plot_type == "histogram":
         fig = px.histogram(df, x=column, title="Histogram")
