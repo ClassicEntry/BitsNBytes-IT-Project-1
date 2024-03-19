@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc
+from dash import Dash, dcc, html, Output, Input, dash_table
 import dash
 import plotly.express as px
 
@@ -14,6 +14,7 @@ app = Dash(
 
 app.layout = html.Div(
     [
+        dcc.Store(id='stored-data'),
         html.Br(),
         html.P("PyExploratory App", className="text-dark text-center fw-bold fs-1"),
         html.Div(
