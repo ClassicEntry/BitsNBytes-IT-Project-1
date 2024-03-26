@@ -14,7 +14,7 @@ app = Dash(__name__,pages_folder="services",use_pages= True, external_stylesheet
 # Styling for sidebar
 SIDEBAR_STYLE = {
     "position": "fixed",
-    "top": "4rem",
+    "top": "0rem",
     "left": 0,
     "bottom": 0,
     "width": "16rem",
@@ -64,17 +64,12 @@ right_sidebar = html.Div(
 content = html.Div(id="page-content", children={}, style=CONTENT_STYLE)
 
 app.layout =  dbc.Container([
-    dbc.Row([
-        dbc.Col(html.Div("PyExploratory",
-                         style={'fontSize':30, 'textAlign':'Left','fontWeight:':'Bold', 'fontType':'Arial Rounded MT Bold'})),
-    ]),
-
-    html.Hr(),
-
     dbc.Row(
         [
             dbc.Col(
                 [
+                    html.Div("PyExploratory",
+                         style={'fontSize':20, 'textAlign':'Left','fontWeight:':'Bold','color':'#ffffff ' , 'fontFamily':'Arial Black' , 'padding':'10px 10px 80px 10px' }),
                     sidebar
                 ], xs=4, sm=4, md=2, lg=2, xl=2, xxl=2, style=SIDEBAR_STYLE),
 
@@ -84,7 +79,7 @@ app.layout =  dbc.Container([
                 ], xs=8, sm=8, md=10, lg=10, xl=10, xxl=10, style=CONTENT_STYLE)
         ]
     )
-], fluid=True, style={'position':'fixed'})
+], fluid=True, style={'position':'relative'})
 
 
 
