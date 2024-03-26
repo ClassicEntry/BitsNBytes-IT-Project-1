@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 import numpy as np  
 from io import StringIO
 
-dash.register_page(__name__, path='/visualisation', name='Visualisation')
+dash.register_page(__name__, path='/visualise_data', name='Visualisation', order= 3)
 
 layout = html.Div([
 # Dropdowns
