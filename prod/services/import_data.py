@@ -33,21 +33,7 @@ layout = html.Div(
                     ],
                     className="col-6",
                 ),
-                html.Div(
-                    [
-                        html.Label("Select Data Source"),
-                        dcc.Dropdown(
-                            id="data-source",
-                            options=[
-                                {"label": "CSV", "value": "csv"},
-                                {"label": "Excel", "value": "excel"},
-                                {"label": "JSON", "value": "JSON"},
-                            ],
-                            value="csv",
-                        ),
-                    ],
-                    className="col-6",
-                ),
+                
             ],
             className="row",
         ),
