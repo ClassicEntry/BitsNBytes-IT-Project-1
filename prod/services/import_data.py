@@ -14,8 +14,6 @@ dash.register_page(__name__, path="/import_data", name="Import Data" , order= 1,
 # -----------------------Page Layout-----------------------
 layout = html.Div(
     [
-        
-        html.Br(),
         html.P("Import Data", className="text-dark text-left fw-bold fs-1"),
         html.Div(
             [
@@ -44,6 +42,7 @@ layout = html.Div(
                 ),
                 
             ],
+            
             className="row",
         ),
         html.Div(id="output-data-upload"),
