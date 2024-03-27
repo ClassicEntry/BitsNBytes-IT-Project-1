@@ -6,13 +6,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import os
 
-# Check if the file exists
-if os.path.exists('local_data.csv'):
-    # If the file exists, read it
-    df = pd.read_csv('local_data.csv')
-else:
-    # If the file does not exist, print an error message
-    print('The file local_data.csv does not exist.')
+
 
 dash.register_page(__name__, path="/clean_data", name="Clean Data", order= 2)
 
@@ -25,13 +19,30 @@ layout = html.Div([
         dcc.Tab(label='Table', value='generate_tables'),
         dcc.Tab(label='Charts', value='display_charts'),
     ]),
-    html.Div(id='tabs-content-example-graph')
+    html.Div(id='tabs-content-example-graph'),
+    dcc.Interval(
+            id='interval-component',
+            interval=1*1000, # in milliseconds
+            n_intervals=0
+        )
+
 ])
 
 @dash.callback(Output('tabs-content-example-graph', 'children'),
-              Input('Summary-example', 'value'))
-def render_content(tab):
+              [Input('Summary-example', 'value'),
+               Input('interval-component', 'n_intervals')])
+
+
+def render_content(tab, n):
     if tab == 'generate_summary':
+        # Check if the file exists
+        if os.path.exists('local_data.csv'):
+            # If the file exists, read it
+            df = pd.read_csv('local_data.csv')
+        else:
+            # If the file does not exist, print an error message
+            print('The file local_data.csv does not exist.')
+            return html.Div()
         # Calculate the summary statistics
         summary = df.describe().transpose()
 
