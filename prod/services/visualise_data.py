@@ -8,35 +8,40 @@ import base64
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np  
+import numpy as np
 from io import StringIO
 
-dash.register_page(__name__, path='/visualise_data', name='Visualisation', order= 3)
+dash.register_page(__name__, path="/visualise_data", name="Visualisation", order=3)
 
-layout = html.Div([
-# Dropdowns
-    html.Div([
-        html.H3("Select a Column"),
-        dcc.Dropdown(id="column-dropdown"),
-        html.H3("Select a Plot Type"),
-        dcc.Dropdown(
-            id="plot-type-dropdown",
-            options=[
-                {"label": "Histogram", "value": "histogram"},
-                {"label": "Boxplot", "value": "boxplot"},
-                {"label": "Scatter Plot", "value": "scatter"},
-            ],
-            value="",
+layout = html.Div(
+    [
+        # Dropdowns
+        html.Div(
+            [
+                html.H3("Select a Column"),
+                dcc.Dropdown(id="column-dropdown"),
+                html.H3("Select a Plot Type"),
+                dcc.Dropdown(
+                    id="plot-type-dropdown",
+                    options=[
+                        {"label": "Histogram", "value": "histogram"},
+                        {"label": "Boxplot", "value": "boxplot"},
+                        {"label": "Scatter Plot", "value": "scatter"},
+                    ],
+                    value="",
+                ),
+            ]
         ),
-    ]),
+        # Data visualization
+        html.Div(id="plot"),
+    ],
+    className="col-8 mx-auto",
+)
 
-    # Data visualization
-    html.Div(id="plot"),
-], className="col-8 mx-auto")
 
 @dash.callback(
-    Output('some-output', 'children'),
-    Input('stored-data', 'data'),
+    Output("some-output", "children"),
+    Input("stored-data", "data"),
 )
 def use_stored_data(data):
     if data is None:
@@ -47,7 +52,7 @@ def use_stored_data(data):
 @dash.callback(
     Output("column-dropdown", "options"),
     Output("column-dropdown", "value"),
-    Input('stored-data', 'data'),
+    Input("stored-data", "data"),
 )
 def update_column_dropdown(data):
     if data is None:
@@ -56,9 +61,10 @@ def update_column_dropdown(data):
     column_options = [{"label": col, "value": col} for col in df.columns]
     return column_options, df.columns[0]
 
+
 @dash.callback(
     Output("plot", "children"),
-    Input('stored-data', 'data'),
+    Input("stored-data", "data"),
     Input("column-dropdown", "value"),
     Input("plot-type-dropdown", "value"),
     prevent_initial_call=True,
