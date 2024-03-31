@@ -176,22 +176,33 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return []  # Fix the return statement
 
 
-# Modify apply_data_cleaning callback to use the cleaning operation
+
 @dash.callback(
     Output('cleaning-result', 'children'),
     Input('clean-data-btn', 'n_clicks'),
     State('column-to-clean', 'value'),
     State('cleaning-operation', 'value'),
-    State('upload-data', 'contents'),
-    State('upload-data', 'filename'),
-    State('upload-data', 'last_modified'),
     prevent_initial_call=True
 )
-def apply_data_cleaning(n_clicks, column_to_clean, operation, list_of_contents, list_of_names, list_of_dates):
-    if n_clicks > 0 and list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d, column_to_clean=column_to_clean, operation=operation)
-            for c, n, d in zip(list_of_contents, list_of_names, list_of_dates)
-        ]
-        return "Data cleaning applied."
-    return "No cleaning applied."
+def apply_data_cleaning(n_clicks, column_to_clean, operation):
+    if n_clicks > 0:
+        df = pd.read_csv("local_data.csv")
+        
+        if column_to_clean in df.columns:
+            if operation == 'lstrip':
+                df[column_to_clean] = df[column_to_clean].str.lstrip()
+            elif operation == 'rstrip':
+                df[column_to_clean] = df[column_to_clean].str.rstrip()
+            elif operation == 'alnum':
+                df[column_to_clean] = df[column_to_clean].str.replace('[^a-zA-Z0-9]', '', regex=True)
+            elif operation == 'dropna':
+                df = df.dropna(subset=[column_to_clean])
+            elif operation == 'fillna':
+                fill_value = ...  # Determine the appropriate fill value
+                df[column_to_clean] = df[column_to_clean].fillna(fill_value)
+            # Add additional elif clauses for other operations here
+            
+            df.to_csv("local_data.csv", index=False)
+            return "Data cleaning applied and saved."
+    return "No cleaning applied or column not found."
+
