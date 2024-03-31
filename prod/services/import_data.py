@@ -1,101 +1,197 @@
 import dash
-from dash import html, dcc
 import datetime
-from dash.dependencies import Input, Output, State
-from dash import dash_table
 import base64
 import pandas as pd
 import io
+from dash import html, dcc, dash_table
+from dash.dependencies import Input, Output, State
 
 
+dash.register_page(
+    __name__,
+    path="/import_data",
+    name="Import Data",
+    order=1,
+)
 
-dash.register_page(__name__, path="/import_data", name="Import Data" , order= 1, )
 
-# -----------------------Page Layout-----------------------
-layout = html.Div(
-    [
-        html.P("Import Data", className="text-dark text-left fw-bold fs-1"),
+def get_layout():
+    """
+    Returns the layout for the import data page.
+    """
+    layout = html.Div(
+        [
+            html.P("Import Data", className="text-dark text-left fw-bold fs-1"),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label("Select File"),
+                            dcc.Upload(
+                                id="upload-data",
+                                children=html.Div(
+                                    ["Drag and Drop or ", html.A("Select Files")]
+                                ),
+                                style={
+                                    "width": "100%",
+                                    "height": "60px",
+                                    "lineHeight": "60px",
+                                    "borderWidth": "1px",
+                                    "borderStyle": "dashed",
+                                    "borderRadius": "5px",
+                                    "textAlign": "center",
+                                    "margin": "10px",
+                                },
+                                multiple=True,
+                            ),
+                        ],
+                        className="col-6",
+                    ),
+                ],
+                className="row",
+            ),
+            html.Div(id="output-data-upload"),
+            html.Div(
+                [
+                    html.Label("Data Cleaning Options:"),
+                    dcc.Input(id='column-to-clean', type='text', placeholder='Column to clean...'),
+                    html.Button('Apply Cleaning', id='clean-data-btn', n_clicks=0),
+                    html.Div(id='cleaning-result')  # Placeholder for showing cleaning results or status
+                ],
+                className="row"
+            ),
+
+        ],
+        className="col-8 mx-auto",
+    )
+
+    layout.children.append(
         html.Div(
             [
-                html.Div(
-                    [
-                        html.Label("Select File"),
-                        dcc.Upload(
-                            id="upload-data",
-                            children=html.Div(
-                                ["Drag and Drop or ", html.A("Select Files")]
-                            ),
-                            style={
-                                "width": "100%",
-                                "height": "60px",
-                                "lineHeight": "60px",
-                                "borderWidth": "1px",
-                                "borderStyle": "dashed",
-                                "borderRadius": "5px",
-                                "textAlign": "center",
-                                "margin": "10px",
-                            },
-                            multiple=True,
-                        ),
+                html.Label("Data Cleaning Options:"),
+                dcc.Input(id='column-to-clean', type='text', placeholder='Column to clean...'),
+                dcc.Dropdown(
+                    id='cleaning-operation',
+                    options=[
+                        {'label': 'Strip spaces (left)', 'value': 'lstrip'},
+                        {'label': 'Strip spaces (right)', 'value': 'rstrip'},
+                        {'label': 'Remove non-alphanumeric characters', 'value': 'alnum'},
                     ],
-                    className="col-6",
+                    value='lstrip'
                 ),
-                
+                html.Button('Apply Cleaning', id='clean-data-btn', n_clicks=0),
+                html.Div(id='cleaning-result')  # Placeholder for showing cleaning results or status
             ],
-            
-            className="row",
-        ),
-        html.Div(id="output-data-upload"),
-    ],
-    className="col-8 mx-auto",
-)
-def parse_contents(contents, filename, date):
-    content_type, content_string = contents.split(',')
+            className="row"
+        )
+    )
+
+    return layout
+
+
+layout = get_layout()
+
+
+def parse_contents(contents, filename, date, column_to_clean=None, operation=None):
+    """
+    Parse the contents of an uploaded file.
+
+    Parameters:
+    - contents (str): The contents of the uploaded file.
+    - filename (str): The name of the uploaded file.
+    - date (int): The last modified date of the uploaded file.
+
+    Returns:
+    - html.Div: A Div element containing the parsed contents of the file.
+    """
+    content_type, content_string = contents.split(",")
 
     decoded = base64.b64decode(content_string)
     try:
-        if 'csv' in filename:
+        if "csv" in filename:
             # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
+            df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+        elif "xls" in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
-    except Exception as e:
+    except FileNotFoundError as e:
         print(e)
-        return html.Div([
-            'There was an error processing this file.'
-        ])
+        return html.Div(["There was an error processing this file."])
 
-         # Save the DataFrame to a CSV file
-    df.to_csv('local_data.csv', index=False)
-    
-    return html.Div([
-        html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
+    # Data cleaning logic
+    if column_to_clean and column_to_clean in df.columns:
+        if operation == 'lstrip':
+            df[column_to_clean] = df[column_to_clean].str.lstrip()
+        elif operation == 'rstrip':
+            df[column_to_clean] = df[column_to_clean].str.rstrip()
+        elif operation == 'alnum':
+            df[column_to_clean] = df[column_to_clean].str.replace('[^a-zA-Z0-9]','', regex=True)
 
-        dash_table.DataTable(
-            df.to_dict('records'),
-            [{'name': i, 'id': i} for i in df.columns]
-        ),
+    # Save the DataFrame to a CSV file
+    df.to_csv("local_data.csv", index=False)
 
-        html.Hr(),  # horizontal line
+    return html.Div(
+        [
+            html.H5(filename),
+            html.H6(datetime.datetime.fromtimestamp(date)),
+            dash_table.DataTable(
+                df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
+            ),
+            html.Hr(),  # horizontal line
+            # For debugging, display the raw contents provided by the web browser
+            html.Div("Raw Content"),
+            html.Pre(
+                contents[0:200] + "...",
+                style={"whiteSpace": "pre-wrap", "wordBreak": "break-all"},
+            ),
+        ]
+    )
 
-        # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content'),
-        html.Pre(contents[0:200] + '...', style={
-            'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all'
-        })
-    ])
 
-@dash.callback(Output('output-data-upload', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
+@dash.callback(
+    Output("output-data-upload", "children"),
+    Input("upload-data", "contents"),
+    State("upload-data", "filename"),
+    State("upload-data", "last_modified"),
+)
 def update_output(list_of_contents, list_of_names, list_of_dates):
+    """
+    Update the output based on the uploaded files.
+
+    Parameters:
+    - list_of_contents (list): A list of file contents.
+    - list_of_names (list): A list of file names.
+    - list_of_dates (list): A list of last modified dates.
+
+    Returns:
+    - list: A list of Div elements containing the parsed contents of the files.
+    """
     if list_of_contents is not None:
         children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
+            parse_contents(c, n, d)
+            for c, n, d in zip(list_of_contents, list_of_names, list_of_dates)
+        ]
         return children
+    else:
+        return []  # Fix the return statement
+
+
+# Modify apply_data_cleaning callback to use the cleaning operation
+@dash.callback(
+    Output('cleaning-result', 'children'),
+    Input('clean-data-btn', 'n_clicks'),
+    State('column-to-clean', 'value'),
+    State('cleaning-operation', 'value'),
+    State('upload-data', 'contents'),
+    State('upload-data', 'filename'),
+    State('upload-data', 'last_modified'),
+    prevent_initial_call=True
+)
+def apply_data_cleaning(n_clicks, column_to_clean, operation, list_of_contents, list_of_names, list_of_dates):
+    if n_clicks > 0 and list_of_contents is not None:
+        children = [
+            parse_contents(c, n, d, column_to_clean=column_to_clean, operation=operation)
+            for c, n, d in zip(list_of_contents, list_of_names, list_of_dates)
+        ]
+        return "Data cleaning applied."
+    return "No cleaning applied."
