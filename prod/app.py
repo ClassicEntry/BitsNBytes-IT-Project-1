@@ -3,8 +3,7 @@ import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
-import atexit
-import os
+
 
 px.defaults.template = "plotly_dark"
 

@@ -1,4 +1,4 @@
-import dash
+'''import dash
 import io
 from dash import Dash, dcc, html, Output, Input, dash_table
 import dash_bootstrap_components as dbc
@@ -84,3 +84,4 @@ def update_plot(data, column, plot_type):
         fig = px.box(df, y=column, title="Boxplot")
 
     return dcc.Graph(figure=fig)
+'''
