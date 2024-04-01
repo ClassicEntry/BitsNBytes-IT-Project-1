@@ -79,7 +79,8 @@ app.layout =  dbc.Container([
                 ], xs=8, sm=8, md=10, lg=10, xl=10, xxl=10, style=CONTENT_STYLE)
         ]
     )
-], fluid=True, style={'position':'relative'})
+], fluid=True, style={'position':'fixed'}
+)
 
 
 

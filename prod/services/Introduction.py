@@ -23,7 +23,7 @@ layout = dbc.Container(
                         html.P(
                             "This is a Data Analysis App for exploring the data in a CSV file. "
                             "You can import data, clean data, and visualise data. "
-                            "You will also be able create a script to generate the dashboard.",
+                            "You will also be able to create the dashboard.",
                             className="mb-4 text-light",
                         ),
                         html.P(

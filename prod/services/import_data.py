@@ -76,7 +76,14 @@ def parse_contents(contents, filename, date):
             html.H5(filename),
             html.H6(datetime.datetime.fromtimestamp(date)),
             dash_table.DataTable(
-                df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
+                df.to_dict("records"), [{"name": i, "id": i} for i in df.columns],
+                style_table={'overflowX': 'auto'},
+                style_cell={
+                    # all three widths are needed
+                    'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
+                    'overflow': 'hidden',
+                    'textOverflow': 'ellipsis',
+                }
             ),
             html.Hr(),  # horizontal line
             # For debugging, display the raw contents provided by the web browser
