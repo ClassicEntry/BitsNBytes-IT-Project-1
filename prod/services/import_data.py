@@ -15,7 +15,7 @@ dash.register_page(
     __name__,
     path="/import_data",
     name="Import Data",
-    order=1,
+    order=2,
 )
 
 
