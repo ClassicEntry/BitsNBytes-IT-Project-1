@@ -163,7 +163,7 @@ import os
 import atexit
 
 
-dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=2)
+dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
 
 # -----------------------Page Layout-----------------------
 
