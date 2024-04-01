@@ -4,3 +4,4 @@ pandas==2.2.1
 plotly==5.9.0
 seaborn
 scikit-learn
+dash_bootstrap_components
