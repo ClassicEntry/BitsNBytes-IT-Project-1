@@ -27,16 +27,18 @@ layout = dbc.Container(
                             className="mb-4 text-light",
                         ),
                         html.P(
-                            "To get started, click on the Import Data link in the sidebar to import a CSV file.",
+                            "To get started, click on the Import Data link in the sidebar to import a CSV file."+
+                            "Once you have imported the data, you can click on the Clean Data link to clean the data with the techniques off.",
                             className="text-light",
                         ),
                     ],
                     md=6,
                 ),
             ],
-            className="py-5 bg-dark",
+            
         ),
     ],
     fluid=True,
-    style={"height": "100vh"},
+    #set backgroud colour to blue
+    style={"height": "100vh", "background-color": "#4c4d4d"},
 )

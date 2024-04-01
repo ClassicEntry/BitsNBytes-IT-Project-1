@@ -31,6 +31,7 @@ layout = html.Div(
 )
 
 
+
 @dash.callback(
     Output("tabs-content-example-graph", "children"),
     [Input("Summary-example", "value"), Input("interval-component", "n_intervals")],
@@ -78,7 +79,7 @@ def render_content(tab, n):
         return html.Div(
             [html.H3("Summary of data"), dcc.Graph(figure=summary_table)] + bar_charts
         )
-    elif tab == "tab-2-example-graph":
+    elif tab == "generate_tables":
         return html.Div(
             [
                 html.H3("Tab content 2"),
