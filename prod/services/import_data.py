@@ -10,7 +10,6 @@ from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
 
 
-
 dash.register_page(
     __name__,
     path="/import_data",
@@ -58,42 +57,58 @@ def get_layout():
             html.Div(
                 [
                     html.Label("Data Cleaning Options:"),
-                    dcc.Input(id='column-to-clean', type='text', placeholder='Column to clean...'),
+                    dcc.Input(
+                        id="column-to-clean",
+                        type="text",
+                        placeholder="Column to clean...",
+                    ),
                     dcc.Dropdown(
-                        id='cleaning-operation',
+                        id="cleaning-operation",
                         options=[
-                            {'label': 'Strip spaces (left)', 'value': 'lstrip'},
-                            {'label': 'Strip spaces (right)', 'value': 'rstrip'},
-                            {'label': 'Remove non-alphanumeric characters', 'value': 'alnum'},
-                            {'label': 'Drop NA', 'value': 'dropna'},
-                            {'label': 'Fill NA', 'value': 'fillna'},
-                            {'label': 'Convert to Numeric', 'value': 'to_numeric'},
-                            {'label': 'Convert to String', 'value': 'to_string'},
-                            {'label': 'Convert to DateTime', 'value': 'to_datetime'},
-                            {'label': 'Convert to Lowercase', 'value': 'lowercase'},
-                            {'label': 'Convert to Uppercase', 'value': 'uppercase'},
-                            {'label': 'Trim Whitespace', 'value': 'trim'},
-                            {'label': 'Drop Column', 'value': 'drop_column'},
-                            {'label': 'Rename Column', 'value': 'rename_column'},
-                            {'label': 'Normalize', 'value': 'normalize'},
-                            {'label': 'Remove Outliers', 'value': 'remove_outliers'},
-                            {'label': 'Drop Duplicates', 'value': 'drop_duplicates'},
+                            {"label": "Strip spaces (left)", "value": "lstrip"},
+                            {"label": "Strip spaces (right)", "value": "rstrip"},
+                            {
+                                "label": "Remove non-alphanumeric characters",
+                                "value": "alnum",
+                            },
+                            {"label": "Drop NA", "value": "dropna"},
+                            {"label": "Fill NA", "value": "fillna"},
+                            {"label": "Convert to Numeric", "value": "to_numeric"},
+                            {"label": "Convert to String", "value": "to_string"},
+                            {"label": "Convert to DateTime", "value": "to_datetime"},
+                            {"label": "Convert to Lowercase", "value": "lowercase"},
+                            {"label": "Convert to Uppercase", "value": "uppercase"},
+                            {"label": "Trim Whitespace", "value": "trim"},
+                            {"label": "Drop Column", "value": "drop_column"},
+                            {"label": "Rename Column", "value": "rename_column"},
+                            {"label": "Normalize", "value": "normalize"},
+                            {"label": "Remove Outliers", "value": "remove_outliers"},
+                            {"label": "Drop Duplicates", "value": "drop_duplicates"},
                             # Add more options here as needed
                         ],
-                        value='lstrip'
+                        value="lstrip",
                     ),
-                    dcc.Input(id='fill-value', type='text', placeholder='Value to fill NA with...'),
-                    dcc.Input(id='new-column-name', type='text', placeholder='New column name...'),  # Added line
-                    html.Button('Apply Cleaning', id='clean-data-btn', n_clicks=0),
-                    html.Div(id='cleaning-result')  # Placeholder for showing cleaning results or status
+                    dcc.Input(
+                        id="fill-value",
+                        type="text",
+                        placeholder="Value to fill NA with...",
+                    ),
+                    dcc.Input(
+                        id="new-column-name",
+                        type="text",
+                        placeholder="New column name...",
+                    ),  # Added line
+                    html.Button("Apply Cleaning", id="clean-data-btn", n_clicks=0),
+                    html.Div(
+                        id="cleaning-result"
+                    ),  # Placeholder for showing cleaning results or status
                 ],
-                className="row"
+                className="row",
             ),
         ],
         className="col-8 mx-auto",
     )
     return layout
-
 
 
 layout = get_layout()
@@ -127,12 +142,14 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
 
     # Data cleaning logic
     if column_to_clean and column_to_clean in df.columns:
-        if operation == 'lstrip':
+        if operation == "lstrip":
             df[column_to_clean] = df[column_to_clean].str.lstrip()
-        elif operation == 'rstrip':
+        elif operation == "rstrip":
             df[column_to_clean] = df[column_to_clean].str.rstrip()
-        elif operation == 'alnum':
-            df[column_to_clean] = df[column_to_clean].str.replace('[^a-zA-Z0-9]','', regex=True)
+        elif operation == "alnum":
+            df[column_to_clean] = df[column_to_clean].str.replace(
+                "[^a-zA-Z0-9]", "", regex=True
+            )
 
     # Save the DataFrame to a CSV file
     df.to_csv("local_data.csv", index=False)
@@ -183,58 +200,65 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return []  # Fix the return statement
 
 
-
 @dash.callback(
-    Output('cleaning-result', 'children'),
-    Input('clean-data-btn', 'n_clicks'),
-    State('column-to-clean', 'value'),
-    State('cleaning-operation', 'value'),
-    State('fill-value', 'value'),
-    State('new-column-name', 'value'),
-    prevent_initial_call=True
+    Output("cleaning-result", "children"),
+    Input("clean-data-btn", "n_clicks"),
+    State("column-to-clean", "value"),
+    State("cleaning-operation", "value"),
+    State("fill-value", "value"),
+    State("new-column-name", "value"),
+    prevent_initial_call=True,
 )
-def apply_data_cleaning(n_clicks, column_to_clean, operation, fill_value=None, new_column_name=None):
+def apply_data_cleaning(
+    n_clicks, column_to_clean, operation, fill_value=None, new_column_name=None
+):
     if n_clicks > 0:
         df = pd.read_csv("local_data.csv")
-        
+
         if column_to_clean in df.columns:
-            if operation == 'lstrip':
+            if operation == "lstrip":
                 df[column_to_clean] = df[column_to_clean].str.lstrip()
-            elif operation == 'rstrip':
+            elif operation == "rstrip":
                 df[column_to_clean] = df[column_to_clean].str.rstrip()
-            elif operation == 'alnum':
-                df[column_to_clean] = df[column_to_clean].str.replace('[^a-zA-Z0-9]', '', regex=True)
-            elif operation == 'dropna':
+            elif operation == "alnum":
+                df[column_to_clean] = df[column_to_clean].str.replace(
+                    "[^a-zA-Z0-9]", "", regex=True
+                )
+            elif operation == "dropna":
                 df = df.dropna(subset=[column_to_clean])
-            elif operation == 'fillna':
+            elif operation == "fillna":
                 if fill_value is None:
-                    if df[column_to_clean].dtype == 'object':
+                    if df[column_to_clean].dtype == "object":
                         fill_value = df[column_to_clean].mode()[0]
                     else:
                         fill_value = df[column_to_clean].mean()
                 df[column_to_clean] = df[column_to_clean].fillna(fill_value)
-            elif operation == 'to_numeric':
-                df[column_to_clean] = pd.to_numeric(df[column_to_clean], errors='coerce')
-            elif operation == 'to_string':
+            elif operation == "to_numeric":
+                df[column_to_clean] = pd.to_numeric(
+                    df[column_to_clean], errors="coerce"
+                )
+            elif operation == "to_string":
                 df[column_to_clean] = df[column_to_clean].astype(str)
-            elif operation == 'to_datetime':
-                df[column_to_clean] = pd.to_datetime(df[column_to_clean], errors='coerce')
-            elif operation == 'lowercase':
+            elif operation == "to_datetime":
+                df[column_to_clean] = pd.to_datetime(
+                    df[column_to_clean], errors="coerce"
+                )
+            elif operation == "lowercase":
                 df[column_to_clean] = df[column_to_clean].str.lower()
-            elif operation == 'uppercase':
+            elif operation == "uppercase":
                 df[column_to_clean] = df[column_to_clean].str.upper()
-            elif operation == 'trim':
+            elif operation == "trim":
                 df[column_to_clean] = df[column_to_clean].str.strip()
-            elif operation == 'drop_column':
+            elif operation == "drop_column":
                 df = df.drop(columns=[column_to_clean])
-            elif operation == 'rename_column':
+            elif operation == "rename_column":
                 df = df.rename(columns={column_to_clean: new_column_name})
-            elif operation == 'normalize':
+            elif operation == "normalize":
                 scaler = MinMaxScaler()
                 df[column_to_clean] = scaler.fit_transform(df[[column_to_clean]])
-            elif operation == 'remove_outliers':
+            elif operation == "remove_outliers":
                 df = df[(np.abs(stats.zscore(df[column_to_clean])) < 3)]
-            elif operation == 'drop_duplicates':
+            elif operation == "drop_duplicates":
                 df = df.drop_duplicates(subset=[column_to_clean])
 
             df.to_csv("local_data.csv", index=False)
