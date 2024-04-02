@@ -1,9 +1,8 @@
 """
 This script defines the layout and configuration of the Dash application.
 
-It creates a Dash app with a sidebar, right sidebar, and content area.
+It creates a Dash app with a sidebar and the content area. 
 The sidebar contains navigation links to different pages of the app.
-The right sidebar includes additional information and a link to generate a script.
 The content area displays the selected page content.
 
 The app layout is structured using Bootstrap grid system.
@@ -25,7 +24,7 @@ px.defaults.template = "plotly_dark"
 # Define external CSS stylesheets
 external_css = [dbc.themes.BOOTSTRAP]
 
-# Create the Dash app
+# Create an instance of the Dash app
 app = Dash(
     __name__,
     pages_folder="services",
@@ -33,7 +32,7 @@ app = Dash(
     external_stylesheets=external_css,
 )
 
-# Styling for sidebar
+# Styling for sidebar ### WHICH??
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": "0rem",
@@ -51,7 +50,7 @@ CONTENT_STYLE = {
     "padding": "2rem 1rem",
 }
 
-# Create the sidebar navigation
+# Create the sidebar navigation hierarchy
 sidebar = dbc.Nav(
     [
         dbc.NavLink(
@@ -73,7 +72,7 @@ sidebar = dbc.Nav(
 # Create the content area
 content = html.Div(id="page-content", children={}, style=CONTENT_STYLE)
 
-# Configure the app layout
+# Configure the app layout hierarchy
 app.layout = dbc.Container(
     [
         dbc.Row(

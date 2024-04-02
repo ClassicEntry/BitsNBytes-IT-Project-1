@@ -1,14 +1,8 @@
 """
 This script controls the data analysis within the Dash application.
 
-It creates a Dash app with a sidebar, right sidebar, and content area.
-The sidebar contains navigation links to different pages of the app.
-The right sidebar includes additional information and a link to generate a script.
-The content area displays the selected page content.
-
-The app layout is structured using Bootstrap grid system.
-
-To run the app, execute this script.
+The script defines the layout and functionality for the "Data Analysis" page in the Dash application. 
+It includes tabs for displaying summary statistics, a table view of the data, and various charts based on the user's selection.
 
 Author: BitNBytes
 """

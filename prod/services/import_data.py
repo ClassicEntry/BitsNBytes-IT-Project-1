@@ -1,3 +1,12 @@
+"""
+This script imports data within the Dash application.
+
+The script defines the layout and functionality for the "Import data" page in the Dash application. 
+It provides options to upload files, perform data cleaning operations on the uploaded data, and display the parsed contents of the file.
+
+Author: BitNBytes
+"""
+
 import dash
 import datetime
 import base64
@@ -21,6 +30,9 @@ dash.register_page(
 def get_layout():
     """
     Returns the layout for the import data page.
+
+    Returns:
+        layout (dash.html.Div): The layout for the import data page.
     """
     layout = html.Div(
         [
@@ -84,7 +96,6 @@ def get_layout():
                             {"label": "Normalize", "value": "normalize"},
                             {"label": "Remove Outliers", "value": "remove_outliers"},
                             {"label": "Drop Duplicates", "value": "drop_duplicates"},
-                            # Add more options here as needed
                         ],
                         value="lstrip",
                     ),
@@ -97,11 +108,11 @@ def get_layout():
                         id="new-column-name",
                         type="text",
                         placeholder="New column name...",
-                    ),  # Added line
+                    ), 
                     html.Button("Apply Cleaning", id="clean-data-btn", n_clicks=0),
                     html.Div(
                         id="cleaning-result"
-                    ),  # Placeholder for showing cleaning results or status
+                    ),  
                 ],
                 className="row",
             ),
@@ -131,16 +142,13 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
     decoded = base64.b64decode(content_string)
     try:
         if "csv" in filename:
-            # Assume that the user uploaded a CSV file
             df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
         elif "xls" in filename:
-            # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
     except FileNotFoundError as e:
         print(e)
         return html.Div(["There was an error processing this file."])
 
-    # Data cleaning logic
     if column_to_clean and column_to_clean in df.columns:
         if operation == "lstrip":
             df[column_to_clean] = df[column_to_clean].str.lstrip()
@@ -151,7 +159,6 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
                 "[^a-zA-Z0-9]", "", regex=True
             )
 
-    # Save the DataFrame to a CSV file
     df.to_csv("local_data.csv", index=False)
 
     return html.Div(
@@ -161,8 +168,7 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
             dash_table.DataTable(
                 df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
             ),
-            html.Hr(),  # horizontal line
-            # For debugging, display the raw contents provided by the web browser
+            html.Hr(),  
             html.Div("Raw Content"),
             html.Pre(
                 contents[0:200] + "...",
@@ -197,7 +203,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         ]
         return children
     else:
-        return []  # Fix the return statement
+        return []  
 
 
 @dash.callback(
@@ -212,6 +218,20 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 def apply_data_cleaning(
     n_clicks, column_to_clean, operation, fill_value=None, new_column_name=None
 ):
+    """
+    Apply data cleaning operations on a specified column of a DataFrame.
+
+    Parameters:
+    - n_clicks (int): The number of times the "clean-data-btn" button has been clicked.
+    - column_to_clean (str): The name of the column to be cleaned.
+    - operation (str): The data cleaning operation to be applied.
+    - fill_value (optional): The value to fill missing values with (default: None).
+    - new_column_name (optional): The new name for the column after renaming (default: None).
+
+    Returns:
+    - str: A message indicating whether the data cleaning was applied and saved or not.
+
+    """
     if n_clicks > 0:
         df = pd.read_csv("local_data.csv")
 
