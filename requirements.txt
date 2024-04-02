@@ -6,5 +6,4 @@ scikit-learn
 dash_bootstrap_components
 scipy
 numpy
-base64
 python-dateutil
