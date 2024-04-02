@@ -69,24 +69,6 @@ sidebar = dbc.Nav(
     pills=True,
 )
 
-# Create the right sidebar
-right_sidebar = html.Div(
-    [
-        html.H2("Right Sidebar"),
-        html.Hr(),
-        html.P("This is a right sidebar."),
-        dbc.NavLink("Generate Script", href="/script_generation"),
-    ],
-    style={
-        "position": "fixed",
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "width": "16rem",
-        "padding": "2rem 1rem",
-        "background-color": "#4c4d4d",
-    },
-)
 
 # Create the content area
 content = html.Div(id="page-content", children={}, style=CONTENT_STYLE)
