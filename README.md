@@ -2,4 +2,7 @@
 IT Project 1 GitHub Repostory
 
 ## To run this project
- First install the requirementusing this command `pip install -r ./requirements.txt`
+ Activate the VENV by running the following:
+ ```bash
+ source env/bin/activate
+ ```
