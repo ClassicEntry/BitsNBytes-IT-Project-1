@@ -23,7 +23,7 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 
 # Register the page with Dash
-dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=2)
+dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
 
 # Define the layout of the page
 layout = html.Div(
