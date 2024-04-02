@@ -1,21 +1,37 @@
+"""
+This script defines the layout and configuration of the Dash application.
+
+It creates a Dash app with a sidebar, right sidebar, and content area.
+The sidebar contains navigation links to different pages of the app.
+The right sidebar includes additional information and a link to generate a script.
+The content area displays the selected page content.
+
+The app layout is structured using Bootstrap grid system.
+
+To run the app, execute this script.
+
+Author: BitNBytes
+"""
+
 from dash import Dash, html, dcc
 import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
-
+# Set the default template for Plotly Express
 px.defaults.template = "plotly_dark"
 
+# Define external CSS stylesheets
 external_css = [dbc.themes.BOOTSTRAP]
 
+# Create the Dash app
 app = Dash(
     __name__,
     pages_folder="services",
     use_pages=True,
     external_stylesheets=external_css,
 )
-
 
 # Styling for sidebar
 SIDEBAR_STYLE = {
@@ -27,12 +43,15 @@ SIDEBAR_STYLE = {
     "padding": "2rem 1rem",
     "background-color": "#282829",
 }
+
+# Styling for content area
 CONTENT_STYLE = {
     "margin-left": "18rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
-# Sidebar
+
+# Create the sidebar navigation
 sidebar = dbc.Nav(
     [
         dbc.NavLink(
@@ -49,6 +68,8 @@ sidebar = dbc.Nav(
     vertical=True,
     pills=True,
 )
+
+# Create the right sidebar
 right_sidebar = html.Div(
     [
         html.H2("Right Sidebar"),
@@ -67,8 +88,10 @@ right_sidebar = html.Div(
     },
 )
 
+# Create the content area
 content = html.Div(id="page-content", children={}, style=CONTENT_STYLE)
 
+# Configure the app layout
 app.layout = dbc.Container(
     [
         dbc.Row(
@@ -112,7 +135,6 @@ app.layout = dbc.Container(
     fluid=True,
     style={"position": "relative"},
 )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
