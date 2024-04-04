@@ -8,3 +8,4 @@ prod/services/.DS_Store
 local_data.csv
 prod/.DS_Store
 .DS_Store
+.vscode/settings.json

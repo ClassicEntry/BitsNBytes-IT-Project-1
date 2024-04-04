@@ -1,18 +1,19 @@
 """
-This script imports data within the Dash application.
+This file imports data within the Dash application.
 
-The script defines the layout and functionality for the "Import data" page in the Dash application. 
-It provides options to upload files, perform data cleaning operations on the uploaded data, and display the parsed contents of the file.
+The file defines the layout and functionality for the "Import data" page in the Dash application. 
+It provides options to upload files, perform data cleaning operations on the uploaded data, 
+and display the parsed contents of the file.
 
 Author: BitNBytes
 """
 
-import dash
 import datetime
 import base64
+import io
+import dash
 import pandas as pd
 import numpy as np
-import io
 from dash import html, dcc, dash_table
 from dash.dependencies import Input, Output, State
 from scipy import stats
@@ -77,8 +78,8 @@ def get_layout():
                     dcc.Dropdown(
                         id="cleaning-operation",
                         options=[
-                            {"label": "Strip spaces (left)", "value": "lstrip"},
-                            {"label": "Strip spaces (right)", "value": "rstrip"},
+                            {"label": "Strip value (left)", "value": "lstrip"},
+                            {"label": "Strip value (right)", "value": "rstrip"},
                             {
                                 "label": "Remove non-alphanumeric characters",
                                 "value": "alnum",
@@ -97,22 +98,20 @@ def get_layout():
                             {"label": "Remove Outliers", "value": "remove_outliers"},
                             {"label": "Drop Duplicates", "value": "drop_duplicates"},
                         ],
-                        value="lstrip",
+                        placeholder="Select Cleaning Operation...",
                     ),
                     dcc.Input(
                         id="fill-value",
                         type="text",
-                        placeholder="Value to fill NA with...",
+                        placeholder="Value to apply to cleaning operation/fill NA with...",
                     ),
                     dcc.Input(
                         id="new-column-name",
                         type="text",
                         placeholder="New column name...",
-                    ), 
+                    ),
                     html.Button("Apply Cleaning", id="clean-data-btn", n_clicks=0),
-                    html.Div(
-                        id="cleaning-result"
-                    ),  
+                    html.Div(id="cleaning-result"),
                 ],
                 className="row",
             ),
@@ -168,7 +167,7 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
             dash_table.DataTable(
                 df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
             ),
-            html.Hr(),  
+            html.Hr(),
             html.Div("Raw Content"),
             html.Pre(
                 contents[0:200] + "...",
@@ -203,7 +202,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         ]
         return children
     else:
-        return []  
+        return []
 
 
 @dash.callback(
@@ -237,9 +236,9 @@ def apply_data_cleaning(
 
         if column_to_clean in df.columns:
             if operation == "lstrip":
-                df[column_to_clean] = df[column_to_clean].str.lstrip()
+                df[column_to_clean] = df[column_to_clean].str.lstrip(fill_value)
             elif operation == "rstrip":
-                df[column_to_clean] = df[column_to_clean].str.rstrip()
+                df[column_to_clean] = df[column_to_clean].str.rstrip(fill_value)
             elif operation == "alnum":
                 df[column_to_clean] = df[column_to_clean].str.replace(
                     "[^a-zA-Z0-9]", "", regex=True

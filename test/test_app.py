@@ -1,64 +1,122 @@
+"""
+This file contains test cases for the Dash application.
+
+The test cases include:
+- Testing the navigation functionality
+- Testing the data import functionality
+- Testing the data analysis functionality
+- Testing the sidebar links
+- Testing the content of the page after starting the server and performing certain actions
+
+These test cases ensure that the Dash application is functioning correctly and that the different
+features and elements of the application are displayed as expected.
+"""
+
 import pytest
 from dash.testing.application_runners import import_app
 from dash.testing.browser import Browser
 
-@pytest.fixture
+
 def dash_app():
-    app = import_app("prod/app.py")  # Ensure this matches the actual path to your Dash app
+    """
+    Returns the Dash application object.
+
+    Returns:
+        Dash: The Dash application object.
+    """
+    app = import_app("prod/app.py")
     yield app
 
-@pytest.fixture
+
 def test_navigation(dash_duo):
-    # Start the Dash app
+    """
+    Test the navigation functionality.
+
+    Args:
+        dash_duo (Dash): The Dash testing object.
+
+    Returns:
+        None
+    """
     dash_duo.start_server(app)
 
-    # Navigate to the Import Data page and verify it loads
     dash_duo.find_element("#nav-link-import-data").click()
     assert dash_duo.find_element("#page-import-data").is_displayed()
 
-    # Repeat for other pages, ensuring you replace the IDs and content checks appropriately
 
-@pytest.fixture
 def test_data_import(dash_duo):
+    """
+    Test the data import functionality.
+
+    Args:
+        dash_duo (Dash): The Dash testing object.
+
+    Returns:
+        None
+    """
     dash_duo.start_server(app)
     dash_duo.find_element("#nav-link-import-data").click()
 
-    # This assumes you have an element with id `upload-data` for file uploads
     dash_duo.upload_file("tests/test_data.csv", "#upload-data")
 
-    # Verify that the file contents are displayed or processed as expected
     assert dash_duo.find_element("#data-preview").is_displayed()
 
-@pytest.fixture
-def test_data_analysis(dash_duo):
-    dash_duo.start_server(app)
-    dash_duo.find_element("#nav-link-data-analysis").click()
-
-    # Assuming there's a mechanism to select which analysis to perform (e.g., summary, charts)
     dash_duo.find_element("#analysis-summary").click()
 
-    # Verify summary statistics are displayed
+
+def test_data_analysis(dash_duo):
+    """
+    Test the data analysis functionality.
+
+    Args:
+        dash_duo (Dash): The Dash testing object.
+
+    Returns:
+        None
+    """
+    dash_duo.start_server(app)
+    dash_duo.find_element("#nav-link-data-analysis").click()
+
     assert dash_duo.find_element("#summary-stats").is_displayed()
 
-    # Repeat for other types of analysis like charts, ensuring you navigate and trigger them accordingly
 
-@pytest.fixture
 def test_sidebar_links(dash_duo):
+    """
+    Test the sidebar links.
+
+    Args:
+        dash_duo (Dash): The Dash testing object.
+
+    Returns:
+        None
+    """
     dash_duo.start_server(app)
 
-    # Verify that all sidebar links are present
     assert dash_duo.find_element("#nav-link-import-data").is_displayed()
     assert dash_duo.find_element("#nav-link-data-analysis").is_displayed()
-    # Add more assertions for other sidebar links
 
-@pytest.fixture
+
 def test_page_content(dash_duo):
+    """
+    Test the content of the page after starting the server and performing certain actions.
+
+    This function tests the content of the page after starting the server and performing certain actions.
+    It checks if the page elements are displayed correctly.
+
+    Args:
+        dash_duo (Dash): The Dash testing object.
+
+    Returns:
+        None
+    """
+    # Start the server
     dash_duo.start_server(app)
 
-    # Verify that the initial page content is displayed
+    # Check if the import data page element is displayed
     assert dash_duo.find_element("#page-import-data").is_displayed()
 
-    # Navigate to another page and verify its content
+    # Click on the data analysis navigation link
     dash_duo.find_element("#nav-link-data-analysis").click()
-    assert dash_duo.find_element("#page-data-analysis").is_displayed()
 
+    # Check if the data analysis page element is displayed
+    assert dash_duo.find_element("#page-data-analysis").is_displayed()

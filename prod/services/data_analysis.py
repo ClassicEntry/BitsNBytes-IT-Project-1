@@ -1,8 +1,10 @@
 """
-This script controls the data analysis within the Dash application.
+This file controls the data analysis within the Dash application.
 
-The script defines the layout and functionality for the "Data Analysis" page in the Dash application. 
-It includes tabs for displaying summary statistics, a table view of the data, and various charts based on the user's selection.
+The file defines the layout and functionality for the "Data Analysis" page in 
+the Dash application. 
+It includes tabs for displaying summary statistics, a table view of the data, 
+and various charts based on the user's selection.
 
 Author: BitNBytes
 """
