@@ -1,9 +1,14 @@
+"""
+This file contains the code for the Introduction page of the Data Analysis App.
+"""
+
 import dash
 from dash import html, dcc
 from dash.dependencies import Input, Output, State
 from dash import dash_table
 import dash_bootstrap_components as dbc
 
+# Register the page with Dash
 dash.register_page(
     __name__,
     path="/Introduction",
@@ -11,8 +16,7 @@ dash.register_page(
     order=1,
 )
 
-# -----------------------Page Layout-----------------------
-
+# Define the layout for the Introduction page
 layout = dbc.Container(
     [
         dbc.Row(
@@ -38,6 +42,6 @@ layout = dbc.Container(
         ),
     ],
     fluid=True,
-    # set backgroud colour to blue
+    # Set background color to blue
     style={"height": "100vh", "background-color": "#4c4d4d"},
 )

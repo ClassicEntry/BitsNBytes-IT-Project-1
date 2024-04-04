@@ -8,4 +8,7 @@ scipy
 numpy
 python-dateutil
 dash[testing]
-dash\[testing]
+#dash\[testing] #Uncomment for Mac
+pytest
+pytest-webdriver
+selenium

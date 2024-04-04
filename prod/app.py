@@ -1,5 +1,5 @@
 """
-This script defines the layout and configuration of the Dash application.
+This file defines the layout and configuration of the Dash application.
 
 It creates a Dash app with a sidebar and the content area. 
 The sidebar contains navigation links to different pages of the app.
@@ -32,7 +32,7 @@ app = Dash(
     external_stylesheets=external_css,
 )
 
-# Styling for sidebar ### WHICH??
+# Styling for sidebar
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": "0rem",
