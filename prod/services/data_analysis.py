@@ -50,6 +50,7 @@ def render_tab_content(tab):
     Returns:
     - html.Div: The rendered content for the selected tab.
     """
+
     if tab == "tab-summary":
         try:
             # Read the data from the local_data.csv file
@@ -67,23 +68,55 @@ def render_tab_content(tab):
                 fill_width=False,
             )
 
-            graphs = []
+            cards = []
 
-            # Generate histograms for each numeric column in the data
-            for col in df.select_dtypes(include=[np.number]).columns:
-                graphs.append(
-                    dcc.Graph(
-                        figure=px.histogram(
-                            df,
-                            x=col,
-                            title=f"Distribution of {col}",
-                            template="plotly_dark",
-                        )
+            # Generate histograms for numeric columns and bar charts for categorical columns
+            for col in df.columns:
+                if df[col].dtype in [np.number]:
+                    # Generate histogram for numeric data
+                    card_content = dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4(col, className="card-title"),
+                                dcc.Graph(
+                                    figure=px.histogram(
+                                        df,
+                                        x=col,
+                                        title=f"Distribution of {col}",
+                                        template="plotly_dark",
+                                    )
+                                ),
+                            ]
+                        ),
+                        className="mb-3",  # add some bottom margin for each card
                     )
-                )
+                else:
+                    # Generate bar chart for categorical data
+                    card_content = dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4(col, className="card-title"),
+                                dcc.Graph(
+                                    figure=px.bar(
+                                        df,
+                                        x=col,
+                                        title=f"Distribution of {col}",
+                                        template="plotly_dark",
+                                    )
+                                ),
+                            ]
+                        ),
+                        className="mb-3",  # add some bottom margin for each card
+                    )
+                # Wrap the card content in a dbc.Col
+                card = dbc.Col(dbc.Card(card_content, className="mb-3"), md=4)
 
-            # Return the summary table and the generated histograms
-            return html.Div([summary_table] + graphs)
+                cards.append(card)
+            # Wrap the cards in a dbc.Row
+            cards_row = dbc.Row(cards)
+
+            # Return the summary table and the generated cards
+            return html.Div([summary_table, cards_row])
 
         except FileNotFoundError:
             # Return an error message if the data file is not found
