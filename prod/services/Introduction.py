@@ -11,7 +11,7 @@ import dash_bootstrap_components as dbc
 # Register the page with Dash
 dash.register_page(
     __name__,
-    path="/Introduction",
+    path="/",
     name="Introduction",
     order=1,
 )
