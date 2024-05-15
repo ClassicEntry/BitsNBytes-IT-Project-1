@@ -29,10 +29,12 @@ layout = html.Div(
             id="tabs",
             value="tab-summary",
             children=[
-                dcc.Tab(label="Summary", value="tab-summary"),
-                dcc.Tab(label="Table", value="tab-table"),
-                dcc.Tab(label="Charts", value="tab-charts"),
-            ],
+        dcc.Tab(label="Summary", value="tab-summary", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
+        dcc.Tab(label="Table", value="tab-table", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
+        dcc.Tab(label="Charts", value="tab-charts", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
+    ],
+    style={'width': '50%', 'margin': 'auto', 'padding': '10px', 'backgroundColor': '#343A40'}  # Center the tabs, set their width to 50%, add some padding, and set the background color to dark
+
         ),
         html.Div(id="tabs-content"),
     ]
@@ -56,18 +58,6 @@ def render_tab_content(tab):
             # Read the data from the local_data.csv file
             df = pd.read_csv("local_data.csv")
 
-            # Calculate summary statistics for the data
-            summary_stats = df.describe().reset_index()
-
-            # Create a DataTable component to display the summary statistics
-            summary_table = dash_table.DataTable(
-                data=summary_stats.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in summary_stats.columns],
-                style_cell={"textAlign": "left"},
-                style_header={"backgroundColor": "white", "fontWeight": "bold"},
-                fill_width=False,
-            )
-
             cards = []
 
             # Generate histograms for numeric columns and bar charts for categorical columns
@@ -89,6 +79,8 @@ def render_tab_content(tab):
                             ]
                         ),
                         className="mb-3",  # add some bottom margin for each card
+                        style={'backgroundColor': '#343A40', 'color': 'white'}  # Set the background color to dark and the text color to white
+
                     )
                 else:
                     # Generate bar chart for categorical data
@@ -107,22 +99,60 @@ def render_tab_content(tab):
                             ]
                         ),
                         className="mb-3",  # add some bottom margin for each card
+                        style={'backgroundColor': '#343A40', 'color': 'white'}  # Set the background color to dark and the text color to white
+
                     )
-                # Wrap the card content in a dbc.Col
-                card = dbc.Col(dbc.Card(card_content, className="mb-3"), md=4)
+
+                # Calculate summary statistics for the data
+                # Calculate summary statistics for the data
+                summary = df[col].describe().reset_index()
+                summary['data_type'] = str(df[col].dtype)
+                #show the missing values as a values and percentage in brackets
+                summary['missing_values'] = df[col].isnull().sum()
+                summary['missing_values_percentage'] = (df[col].isnull().sum() / len(df[col])) * 100
+                summary['missing_values_percentage'] = summary['missing_values_percentage'].map("{:.2f}%".format)
+                summary.columns = ['Statistic', 'Value', 'Data Type', 'Missing Values', 'Missing Values (%)']
+
+                summary_table = dash_table.DataTable(
+                    data=summary.to_dict("records"),
+                    columns=[{"name": i, "id": i} for i in summary.columns],
+                    style_data={'whiteSpace': 'normal', 'height': 'auto'},  # Wrap the cell content and adjust the cell height
+                    style_cell={
+                        'textAlign': 'left',
+                        'backgroundColor': '#1e2130',  # Set the cell background color to dark
+                        'color': 'white',  # Set the cell text color to white
+                        'border': '1px solid white'  # Add a border to the cells
+                    },
+                    style_header={
+                        'backgroundColor': '#007BFF',  # Set the header background color to blue
+                        'fontWeight': 'bold',  # Make the header text bold
+                        'color': 'white'  # Set the header text color to white
+                    },
+                    style_table={
+                        'overflowX': 'auto',  # Add a horizontal scrollbar if the content overflows
+                        'maxHeight': '300px',  # Set a maximum height for the table
+                        'overflowY': 'auto'  # Add a vertical scrollbar if the content overflows
+                    },
+                    fill_width=False,
+                )
+
+                # Wrap the card content and summary table in a dbc.Col
+                card = dbc.Col([dbc.Card(card_content, className="mb-3"), summary_table], md=4)
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
             cards_row = dbc.Row(cards)
 
-            # Return the summary table and the generated cards
-            return html.Div([summary_table, cards_row])
+            # Return the generated cards
+            return html.Div(cards_row)
 
         except FileNotFoundError:
             # Return an error message if the data file is not found
             return html.Div(
                 "Data file not found. Please upload data in the 'Import Data' section."
             )
+    
+    
 
     elif tab == "tab-table":
         try:
