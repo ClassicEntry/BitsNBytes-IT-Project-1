@@ -352,7 +352,6 @@ def update_scatter_chart(x_axis, y_axis):
     return dcc.Graph(figure=fig)
 
 
-# Add a new callback function to perform the selected machine learning task
 @dash.callback(
     Output("ml-results", "children"),
     [Input("task-dropdown", "value"), Input("target-variable-dropdown", "value")],
@@ -360,80 +359,115 @@ def update_scatter_chart(x_axis, y_axis):
 )
 def perform_ml_task(task, target_variable):
     # Read the data from the local_data.csv file
-    df = pd.read_csv("local_data.csv")
+    try:
+        df = pd.read_csv("local_data.csv")
+    except FileNotFoundError:
+        return html.Div(
+            "Data file not found. Please upload data in the 'Import Data' section."
+        )
+
+    if target_variable not in df.columns:
+        return html.Div("Target variable not found in the dataset.")
 
     if task == "time_series":
-        # Perform time series analysis
-        df[target_variable] = pd.to_datetime(df[target_variable])
-        df = df.set_index(target_variable)
-        return dcc.Graph(figure=px.line(df, y=df.columns[0]))
+        try:
+            # Perform time series analysis
+            df[target_variable] = pd.to_datetime(df[target_variable])
+            df = df.set_index(target_variable)
+            return dcc.Graph(
+                figure=px.line(df, y=df.columns[0], title="Time Series Analysis")
+            )
+        except Exception as e:
+            return html.Div(f"Error in time series analysis: {str(e)}")
 
     elif task == "feature_extraction":
-        # Perform feature extraction using PCA
-        features = df.drop(columns=[target_variable])
-        pca = PCA(n_components=2)
-        components = pca.fit_transform(features)
-        return dcc.Graph(
-            figure=px.scatter(
-                components,
-                x=0,
-                y=1,
-                title="PCA Feature Extraction",
-                labels={"0": "PCA 1", "1": "PCA 2"},
+        try:
+            # Perform feature extraction using PCA
+            features = df.drop(columns=[target_variable])
+            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
+                return html.Div("Feature extraction requires numeric data.")
+            pca = PCA(n_components=2)
+            components = pca.fit_transform(features)
+            components_df = pd.DataFrame(data=components, columns=["PCA 1", "PCA 2"])
+            return dcc.Graph(
+                figure=px.scatter(
+                    components_df, x="PCA 1", y="PCA 2", title="PCA Feature Extraction"
+                )
             )
-        )
+        except Exception as e:
+            return html.Div(f"Error in feature extraction: {str(e)}")
 
     elif task == "clustering":
-        # Perform clustering using KMeans
-        features = df.drop(columns=[target_variable])
-        kmeans = KMeans(n_clusters=3)
-        df["Cluster"] = kmeans.fit_predict(features)
-        return dcc.Graph(
-            figure=px.scatter(
-                df, x=features.columns[0], y=features.columns[1], color="Cluster"
+        try:
+            # Perform clustering using KMeans
+            features = df.drop(columns=[target_variable])
+            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
+                return html.Div("Clustering requires numeric data.")
+            kmeans = KMeans(n_clusters=3)
+            df["Cluster"] = kmeans.fit_predict(features)
+            return dcc.Graph(
+                figure=px.scatter(
+                    df,
+                    x=features.columns[0],
+                    y=features.columns[1],
+                    color="Cluster",
+                    title="KMeans Clustering",
+                )
             )
-        )
+        except Exception as e:
+            return html.Div(f"Error in clustering: {str(e)}")
 
     elif task == "classification":
-        # Perform classification using RandomForestClassifier
-        features = df.drop(columns=[target_variable])
-        target = df[target_variable]
-        X_train, X_test, y_train, y_test = train_test_split(
-            features, target, test_size=0.3
-        )
-        scaler = StandardScaler().fit(X_train)
-        X_train_scaled = scaler.transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        clf = RandomForestClassifier()
-        clf.fit(X_train_scaled, y_train)
-        y_pred = clf.predict(X_test_scaled)
-        report = classification_report(y_test, y_pred, output_dict=True)
-        report_df = pd.DataFrame(report).transpose()
-        return dash_table.DataTable(
-            data=report_df.to_dict("records"),
-            columns=[{"name": i, "id": i} for i in report_df.columns],
-            style_cell={"textAlign": "left"},
-            style_header={"backgroundColor": "white", "fontWeight": "bold"},
-            fill_width=False,
-        )
+        try:
+            # Perform classification using RandomForestClassifier
+            features = df.drop(columns=[target_variable])
+            target = df[target_variable]
+            if target.nunique() <= 1:
+                return html.Div(
+                    "Classification requires more than one class in the target variable."
+                )
+            X_train, X_test, y_train, y_test = train_test_split(
+                features, target, test_size=0.3, random_state=42
+            )
+            scaler = StandardScaler().fit(X_train)
+            X_train_scaled = scaler.transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+            clf = RandomForestClassifier()
+            clf.fit(X_train_scaled, y_train)
+            y_pred = clf.predict(X_test_scaled)
+            report = classification_report(y_test, y_pred, output_dict=True)
+            report_df = pd.DataFrame(report).transpose()
+            return dash_table.DataTable(
+                data=report_df.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in report_df.columns],
+                style_cell={"textAlign": "left"},
+                style_header={"backgroundColor": "white", "fontWeight": "bold"},
+                fill_width=False,
+            )
+        except Exception as e:
+            return html.Div(f"Error in classification: {str(e)}")
 
     elif task == "feature_selection":
-        # Perform feature selection using SelectKBest
-        features = df.drop(columns=[target_variable])
-        target = df[target_variable]
-        selector = SelectKBest(score_func=chi2, k=2)
-        selector.fit(features, target)
-        scores = pd.DataFrame(
-            selector.scores_, index=features.columns, columns=["Score"]
-        )
-        scores = scores.sort_values(by="Score", ascending=False).reset_index()
-        return dash_table.DataTable(
-            data=scores.to_dict("records"),
-            columns=[{"name": i, "id": i} for i in scores.columns],
-            style_cell={"textAlign": "left"},
-            style_header={"backgroundColor": "white", "fontWeight": "bold"},
-            fill_width=False,
-        )
-    else:
-        # Return an error message if no task is selected
-        return html.Div("Select a task.")
+        try:
+            # Perform feature selection using SelectKBest
+            features = df.drop(columns=[target_variable])
+            target = df[target_variable]
+            if not np.issubdtype(target.dtype, np.number):
+                return html.Div("Feature selection requires a numeric target variable.")
+            selector = SelectKBest(score_func=chi2, k=2)
+            selector.fit(features, target)
+            scores = pd.DataFrame(
+                selector.scores_, index=features.columns, columns=["Score"]
+            )
+            scores = scores.sort_values(by="Score", ascending=False).reset_index()
+            return dash_table.DataTable(
+                data=scores.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in scores.columns],
+                style_cell={"textAlign": "left"},
+                style_header={"backgroundColor": "white", "fontWeight": "bold"},
+                fill_width=False,
+            )
+        except Exception as e:
+            return html.Div(f"Error in feature selection: {str(e)}")
+
+    return html.Div("Select a valid task.")
