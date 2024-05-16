@@ -29,7 +29,7 @@ layout = html.Div(
             id="tabs",
             value="tab-summary",
             children=[
-        dcc.Tab(label="Summary", value="tab-summary", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
+        dcc.Tab(label="Summary", value="tab-summary", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '15px'}),
         dcc.Tab(label="Table", value="tab-table", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
         dcc.Tab(label="Charts", value="tab-charts", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
     ],
