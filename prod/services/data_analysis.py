@@ -17,7 +17,6 @@ import pandas as pd
 import numpy as np
 from dash.dependencies import Input, Output
 import plotly.express as px
-import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest, chi2
@@ -32,7 +31,7 @@ dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=
 # Define the layout of the page
 layout = html.Div(
     [
-        html.H1("Data Analysis"),
+        html.H1("Data Analysis", className="text-dark text-center fw-bold fs-1"),
         dcc.Tabs(
             id="tabs",
             value="tab-summary",
@@ -58,8 +57,8 @@ layout = html.Div(
                     },
                 ),
                 dcc.Tab(
-                    label="Machine Learning",
-                    value="tab-machine-learning",
+                    label="Charts",
+                    value="tab-charts",
                     style={
                         "backgroundColor": "#007BFF",
                         "color": "white",
@@ -68,8 +67,8 @@ layout = html.Div(
                     },
                 ),
                 dcc.Tab(
-                    label="Charts",
-                    value="tab-charts",
+                    label="Machine Learning",
+                    value="tab-machine-learning",
                     style={
                         "backgroundColor": "#007BFF",
                         "color": "white",
@@ -109,19 +108,27 @@ def render_tab_content(tab):
 
             cards = []
             for col in df.columns:
-            # Calculate summary statistics for the data
+                # Calculate summary statistics for the data
                 summary = df[col].describe().reset_index()
                 summary.columns = ["Statistic", "Value"]
 
                 # Create a DataFrame for the additional statistics
-                additional_stats = pd.DataFrame({
-                    "Statistic": ["Data Type", "Missing Values", "Missing Values (%)"],
-                    "Value": [
-                        str(df[col].dtype),
-                        df[col].isnull().sum(),
-                        "{:.2f}%".format((df[col].isnull().sum() / len(df[col])) * 100)
-                    ]
-                })
+                additional_stats = pd.DataFrame(
+                    {
+                        "Statistic": [
+                            "Data Type",
+                            "Missing Values",
+                            "Missing Values (%)",
+                        ],
+                        "Value": [
+                            str(df[col].dtype),
+                            df[col].isnull().sum(),
+                            "{:.2f}%".format(
+                                (df[col].isnull().sum() / len(df[col])) * 100
+                            ),
+                        ],
+                    }
+                )
 
                 # Concatenate the summary and additional_stats DataFrames
                 summary = pd.concat([summary, additional_stats], ignore_index=True)
@@ -154,9 +161,9 @@ def render_tab_content(tab):
                 )
 
             # Generate histograms for numeric columns and bar charts for categorical columns
-            
-                if df[col].dtype in ["float64", "int64"]:
-                    # Generate histogram for numerical data
+            for col in df.columns:
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    # Generate histogram for numeric data
                     card_content = dbc.Card(
                         dbc.CardBody(
                             [
@@ -180,14 +187,18 @@ def render_tab_content(tab):
                     )
                 else:
                     # Generate bar chart for categorical data
+                    data = df[col].value_counts().reset_index()
+                    data.columns = [col, "count"]
+
                     card_content = dbc.Card(
                         dbc.CardBody(
                             [
                                 html.H4(col, className="card-title"),
                                 dcc.Graph(
                                     figure=px.bar(
-                                        df,
+                                        data,
                                         x=col,
+                                        y="count",
                                         title=f"Distribution of {col}",
                                         template="plotly_dark",
                                     )
@@ -201,11 +212,9 @@ def render_tab_content(tab):
                             "color": "white",
                         },  # Set the background color to dark and the text color to white
                     )
-                
+
                 # Wrap the card content and summary table in a dbc.Col
-                card = dbc.Col(
-                    [dbc.Card(card_content, className="mb-3")], md=4
-                )
+                card = dbc.Col([dbc.Card(card_content, className="mb-3")], md=4)
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
@@ -226,8 +235,20 @@ def render_tab_content(tab):
             df = pd.read_csv("local_data.csv")
 
             # Create a DataTable component to display the data as a table
-            return dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
-
+            return dash_table.DataTable(
+                data=df.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df.columns],
+                page_action="native",
+                page_size=50,
+                style_table={
+                    "overflowX": "auto",
+                    "padding": "10px",
+                },
+                style_cell={
+                    "whiteSpace": "normal",
+                    "height": "auto",
+                },
+            )
         except FileNotFoundError:
             # Return an error message if the data file is not found
             return html.Div(
@@ -252,10 +273,21 @@ def render_tab_content(tab):
                         {"label": "Box Plot", "value": "boxplot"},
                         {"label": "Scatter Plot", "value": "scatter"},
                         {"label": "Line Plot", "value": "line"},
+                        {"label": "Bar Chart", "value": "bar"},
+                        {"label": "Pie Chart", "value": "pie"},
                     ],
                     value="",
+                    placeholder="Select a chart type...",
                 ),
-                dcc.Dropdown(id="column-dropdown", options=column_options, value=""),
+                dcc.Dropdown(
+                    id="column-dropdown",
+                    options=column_options,
+                    value="",
+                    placeholder="Select a column...",
+                    style={
+                        "margin-top": "10px",
+                    },
+                ),
                 html.Div(id="chart-container"),
             ]
         )
@@ -306,6 +338,8 @@ def update_chart(chart_type, column_name):
     """
     # Read the data from the local_data.csv file
     df = pd.read_csv("local_data.csv")
+    if not column_name or column_name not in df.columns:
+        return html.Div("Select a valid column.")
     if chart_type == "histogram":
         # Generate a histogram for the selected column
         return dcc.Graph(figure=px.histogram(df, x=column_name))
@@ -325,7 +359,61 @@ def update_chart(chart_type, column_name):
         )
     elif chart_type == "line":
         # Generate a line plot for the selected column
-        return dcc.Graph(figure=px.line(df, x=df.index, y=column_name))
+        if pd.api.types.is_numeric_dtype(df[column_name]):
+            return dcc.Graph(
+                figure=px.line(
+                    df, x=df.index, y=column_name, title=f"Line Plot of {column_name}"
+                )
+            )
+        else:
+            # For categorical columns
+            data = df[column_name].value_counts().reset_index()
+            data.columns = [column_name, "count"]
+            return dcc.Graph(
+                figure=px.line(
+                    data, x=column_name, y="count", title=f"Line Plot of {column_name}"
+                )
+            )
+    elif chart_type == "bar":
+        if pd.api.types.is_numeric_dtype(df[column_name]):
+            # For numeric columns, use binning
+            bins = 10  # or any number of bins you want
+            data = pd.cut(df[column_name], bins).value_counts().reset_index()
+            data.columns = [column_name, "count"]
+            data = data.sort_values(by=column_name)
+            # Convert intervals to strings
+            data[column_name] = data[column_name].astype(str)
+            return dcc.Graph(
+                figure=px.bar(
+                    data,
+                    x=column_name,
+                    y="count",
+                    title=f"Distribution of {column_name}",
+                )
+            )
+        else:
+            # For categorical columns
+            data = df[column_name].value_counts().reset_index()
+            data.columns = [column_name, "count"]
+            return dcc.Graph(
+                figure=px.bar(
+                    data,
+                    x=column_name,
+                    y="count",
+                    title=f"Distribution of {column_name}",
+                )
+            )
+    elif chart_type == "pie":
+        # Check if the column is numeric
+        if pd.api.types.is_numeric_dtype(df[column_name]):
+            return "Error: Pie chart cannot be created for numeric data"
+        else:
+            # Generate a pie chart for the selected column
+            return dcc.Graph(
+                figure=px.pie(
+                    df, names=column_name, title=f"Pie chart of {column_name}"
+                )
+            )
     else:
         # Return an error message if no chart type is selected
         return html.Div("Select a chart type.")

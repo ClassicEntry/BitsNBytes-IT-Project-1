@@ -12,7 +12,7 @@ dash.register_page(__name__, path="/script_generation", name="Generate Script")
 layout = html.Div(
     [
         html.Br(),
-        html.P("Generate Script", className="text-dark text-center fw-bold fs-1"),
+        html.H1("Generate Script", className="text-dark text-center fw-bold fs-1"),
         html.Div(
             [
                 html.Label("Select Script Type"),
