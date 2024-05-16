@@ -17,6 +17,14 @@ import pandas as pd
 import numpy as np
 from dash.dependencies import Input, Output
 import plotly.express as px
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.cluster import KMeans
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.decomposition import PCA
 
 # Register the page with Dash
 dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
@@ -31,6 +39,7 @@ layout = html.Div(
             children=[
                 dcc.Tab(label="Summary", value="tab-summary"),
                 dcc.Tab(label="Table", value="tab-table"),
+                dcc.Tab(label="Machine Learning", value="tab-machine-learning"),
                 dcc.Tab(label="Charts", value="tab-charts"),
             ],
         ),
@@ -163,6 +172,33 @@ def render_tab_content(tab):
                 html.Div(id="chart-container"),
             ]
         )
+    # Add a new case in the render_tab_content function
+    elif tab == "tab-machine-learning":
+        # Read the data from the local_data.csv file
+        df = pd.read_csv("local_data.csv")
+
+        # Create options for the task and target variable dropdowns
+        task_options = [
+            {"label": "Time Series Analysis", "value": "time_series"},
+            {"label": "Feature Extraction", "value": "feature_extraction"},
+            {"label": "Clustering", "value": "clustering"},
+            {"label": "Classification", "value": "classification"},
+            {"label": "Feature Selection", "value": "feature_selection"},
+        ]
+        target_variable_options = [{"label": col, "value": col} for col in df.columns]
+
+        # Return a Div component with dropdowns for task and target variable selection
+        return html.Div(
+            [
+                dcc.Dropdown(id="task-dropdown", options=task_options, value=""),
+                dcc.Dropdown(
+                    id="target-variable-dropdown",
+                    options=target_variable_options,
+                    value="",
+                ),
+                html.Div(id="ml-results"),
+            ]
+        )
 
 
 @dash.callback(
@@ -227,3 +263,90 @@ def update_scatter_chart(x_axis, y_axis):
     df = pd.read_csv("local_data.csv")
     fig = px.scatter(df, x=x_axis, y=y_axis)
     return dcc.Graph(figure=fig)
+
+
+# Add a new callback function to perform the selected machine learning task
+@dash.callback(
+    Output("ml-results", "children"),
+    [Input("task-dropdown", "value"), Input("target-variable-dropdown", "value")],
+    prevent_initial_call=True,
+)
+def perform_ml_task(task, target_variable):
+    # Read the data from the local_data.csv file
+    df = pd.read_csv("local_data.csv")
+
+    if task == "time_series":
+        # Perform time series analysis
+        df[target_variable] = pd.to_datetime(df[target_variable])
+        df = df.set_index(target_variable)
+        return dcc.Graph(figure=px.line(df, y=df.columns[0]))
+
+    elif task == "feature_extraction":
+        # Perform feature extraction using PCA
+        features = df.drop(columns=[target_variable])
+        pca = PCA(n_components=2)
+        components = pca.fit_transform(features)
+        return dcc.Graph(
+            figure=px.scatter(
+                components,
+                x=0,
+                y=1,
+                title="PCA Feature Extraction",
+                labels={"0": "PCA 1", "1": "PCA 2"},
+            )
+        )
+
+    elif task == "clustering":
+        # Perform clustering using KMeans
+        features = df.drop(columns=[target_variable])
+        kmeans = KMeans(n_clusters=3)
+        df["Cluster"] = kmeans.fit_predict(features)
+        return dcc.Graph(
+            figure=px.scatter(
+                df, x=features.columns[0], y=features.columns[1], color="Cluster"
+            )
+        )
+
+    elif task == "classification":
+        # Perform classification using RandomForestClassifier
+        features = df.drop(columns=[target_variable])
+        target = df[target_variable]
+        X_train, X_test, y_train, y_test = train_test_split(
+            features, target, test_size=0.3
+        )
+        scaler = StandardScaler().fit(X_train)
+        X_train_scaled = scaler.transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        clf = RandomForestClassifier()
+        clf.fit(X_train_scaled, y_train)
+        y_pred = clf.predict(X_test_scaled)
+        report = classification_report(y_test, y_pred, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
+        return dash_table.DataTable(
+            data=report_df.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in report_df.columns],
+            style_cell={"textAlign": "left"},
+            style_header={"backgroundColor": "white", "fontWeight": "bold"},
+            fill_width=False,
+        )
+
+    elif task == "feature_selection":
+        # Perform feature selection using SelectKBest
+        features = df.drop(columns=[target_variable])
+        target = df[target_variable]
+        selector = SelectKBest(score_func=chi2, k=2)
+        selector.fit(features, target)
+        scores = pd.DataFrame(
+            selector.scores_, index=features.columns, columns=["Score"]
+        )
+        scores = scores.sort_values(by="Score", ascending=False).reset_index()
+        return dash_table.DataTable(
+            data=scores.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in scores.columns],
+            style_cell={"textAlign": "left"},
+            style_header={"backgroundColor": "white", "fontWeight": "bold"},
+            fill_width=False,
+        )
+    else:
+        # Return an error message if no task is selected
+        return html.Div("Select a task.")
