@@ -58,6 +58,16 @@ layout = html.Div(
                     },
                 ),
                 dcc.Tab(
+                    label="Machine Learning",
+                    value="tab-machine-learning",
+                    style={
+                        "backgroundColor": "#007BFF",
+                        "color": "white",
+                        "borderRadius": "15px",
+                        "margin": "10px",
+                    },
+                ),
+                dcc.Tab(
                     label="Charts",
                     value="tab-charts",
                     style={
