@@ -16,7 +16,6 @@ import pytest
 from dash.testing.application_runners import import_app
 from dash.testing.browser import Browser
 
-app = next(dash_app())
 
 def dash_app():
     """
@@ -29,20 +28,6 @@ def dash_app():
     yield app
 
 
-# def test_navigation(dash_duo):
-#     """
-#     Test the navigation functionality.
-
-#     Args:
-#         dash_duo (Dash): The Dash testing object.
-
-#     Returns:
-#         None
-#     """
-#     dash_duo.start_server(app)
-
-#     dash_duo.find_element("#nav-link-import-data").click()
-#     assert dash_duo.find_element("#page-import-data").is_displayed()
 def test_navigation(dash_duo):
     """
     Test the navigation functionality.
@@ -57,6 +42,7 @@ def test_navigation(dash_duo):
 
     dash_duo.find_element("#nav-link-import-data").click()
     assert dash_duo.find_element("#page-import-data").is_displayed()
+
 
 def test_data_import(dash_duo):
     """

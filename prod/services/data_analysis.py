@@ -108,25 +108,74 @@ def render_tab_content(tab):
             df = pd.read_csv("local_data.csv")
 
             cards = []
+
+            # Generate histograms for numeric columns and bar charts for categorical columns
             for col in df.columns:
-            # Calculate summary statistics for the data
+                if df[col].dtype in [np.number]:
+                    # Generate histogram for numeric data
+                    card_content = dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4(col, className="card-title"),
+                                dcc.Graph(
+                                    figure=px.histogram(
+                                        df,
+                                        x=col,
+                                        title=f"Distribution of {col}",
+                                        template="plotly_dark",
+                                    )
+                                ),
+                            ]
+                        ),
+                        className="mb-3",  # add some bottom margin for each card
+                        style={
+                            "backgroundColor": "#343A40",
+                            "color": "white",
+                        },  # Set the background color to dark and the text color to white
+                    )
+                else:
+                    # Generate bar chart for categorical data
+                    card_content = dbc.Card(
+                        dbc.CardBody(
+                            [
+                                html.H4(col, className="card-title"),
+                                dcc.Graph(
+                                    figure=px.bar(
+                                        df,
+                                        x=col,
+                                        title=f"Distribution of {col}",
+                                        template="plotly_dark",
+                                    )
+                                ),
+                            ]
+                        ),
+                        className="mb-3",  # add some bottom margin for each card
+                        style={
+                            "backgroundColor": "#343A40",
+                            "color": "white",
+                        },  # Set the background color to dark and the text color to white
+                    )
+
+                # Calculate summary statistics for the data
+                # Calculate summary statistics for the data
                 summary = df[col].describe().reset_index()
-                summary.columns = ["Statistic", "Value"]
+                summary["data_type"] = str(df[col].dtype)
+                # show the missing values as a values and percentage in brackets
+                summary["missing_values"] = df[col].isnull().sum()
+                summary["missing_values_percentage"] = (
+                    df[col].isnull().sum() / len(df[col])
+                ) * 100
+                summary["missing_values_percentage"] = summary[
+                    "missing_values_percentage"
+                ].map("{:.2f}%".format)
+                summary.columns = [
+                    "Statistic",
+                    "Value",
+                    "Data Type",
+                    "Missing Values",
+                    "Missing Values (%)",
+                ]
 
-                # Create a DataFrame for the additional statistics
-                additional_stats = pd.DataFrame({
-                    "Statistic": ["Data Type", "Missing Values", "Missing Values (%)"],
-                    "Value": [
-                        str(df[col].dtype),
-                        df[col].isnull().sum(),
-                        "{:.2f}%".format((df[col].isnull().sum() / len(df[col])) * 100)
-                    ]
-                })
-
-                # Concatenate the summary and additional_stats DataFrames
-                summary = pd.concat([summary, additional_stats], ignore_index=True)
-
-                # Create a DataTable component to display the summary statistics
                 summary_table = dash_table.DataTable(
                     data=summary.to_dict("records"),
                     columns=[{"name": i, "id": i} for i in summary.columns],
@@ -153,58 +202,9 @@ def render_tab_content(tab):
                     fill_width=False,
                 )
 
-            # Generate histograms for numeric columns and bar charts for categorical columns
-            
-                if df[col].dtype in ["float64", "int64"]:
-                    # Generate histogram for numerical data
-                    card_content = dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4(col, className="card-title"),
-                                dcc.Graph(
-                                    figure=px.histogram(
-                                        df,
-                                        x=col,
-                                        title=f"Distribution of {col}",
-                                        template="plotly_dark",
-                                    )
-                                ),
-                                summary_table,  # Add the summary table here
-                            ]
-                        ),
-                        className="mb-3",  # add some bottom margin for each card
-                        style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
-                        },  # Set the background color to dark and the text color to white
-                    )
-                else:
-                    # Generate bar chart for categorical data
-                    card_content = dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4(col, className="card-title"),
-                                dcc.Graph(
-                                    figure=px.bar(
-                                        df,
-                                        x=col,
-                                        title=f"Distribution of {col}",
-                                        template="plotly_dark",
-                                    )
-                                ),
-                                summary_table,  # Add the summary table here
-                            ]
-                        ),
-                        className="mb-3",  # add some bottom margin for each card
-                        style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
-                        },  # Set the background color to dark and the text color to white
-                    )
-                
                 # Wrap the card content and summary table in a dbc.Col
                 card = dbc.Col(
-                    [dbc.Card(card_content, className="mb-3")], md=4
+                    [dbc.Card(card_content, className="mb-3"), summary_table], md=4
                 )
 
                 cards.append(card)
