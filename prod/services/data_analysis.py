@@ -161,8 +161,7 @@ def render_tab_content(tab):
                 )
 
                 # Generate histograms for numeric columns and bar charts for categorical columns
-
-                if df[col].dtype in ["float64", "int64"]:
+                if pd.api.types.is_numeric_dtype(df[col]):
                     # Generate histogram for numerical data
                     card_content = dbc.Card(
                         dbc.CardBody(
