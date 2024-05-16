@@ -169,12 +169,6 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
             dash_table.DataTable(
                 df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
             ),
-            html.Hr(),
-            html.Div("Raw Content"),
-            html.Pre(
-                contents[0:200] + "...",
-                style={"whiteSpace": "pre-wrap", "wordBreak": "break-all"},
-            ),
         ]
     )
 
