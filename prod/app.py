@@ -41,6 +41,7 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
     "background-color": "#282829",
+    "z-index": "1",
 }
 
 # Styling for content area

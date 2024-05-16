@@ -17,7 +17,6 @@ import pandas as pd
 import numpy as np
 from dash.dependencies import Input, Output
 import plotly.express as px
-import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest, chi2
@@ -58,8 +57,8 @@ layout = html.Div(
                     },
                 ),
                 dcc.Tab(
-                    label="Machine Learning",
-                    value="tab-machine-learning",
+                    label="Charts",
+                    value="tab-charts",
                     style={
                         "backgroundColor": "#007BFF",
                         "color": "white",
@@ -68,8 +67,8 @@ layout = html.Div(
                     },
                 ),
                 dcc.Tab(
-                    label="Charts",
-                    value="tab-charts",
+                    label="Machine Learning",
+                    value="tab-machine-learning",
                     style={
                         "backgroundColor": "#007BFF",
                         "color": "white",
