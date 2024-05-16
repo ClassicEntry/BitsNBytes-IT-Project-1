@@ -126,6 +126,7 @@ def render_tab_content(tab):
                 # Concatenate the summary and additional_stats DataFrames
                 summary = pd.concat([summary, additional_stats], ignore_index=True)
 
+                # Create a DataTable component to display the summary statistics
                 summary_table = dash_table.DataTable(
                     data=summary.to_dict("records"),
                     columns=[{"name": i, "id": i} for i in summary.columns],
