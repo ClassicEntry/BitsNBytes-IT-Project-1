@@ -309,11 +309,18 @@ def render_tab_content(tab):
         # Return a Div component with dropdowns for task and target variable selection
         return html.Div(
             [
-                dcc.Dropdown(id="task-dropdown", options=task_options, value=""),
+                dcc.Dropdown(
+                    id="task-dropdown",
+                    options=task_options,
+                    value="",
+                    placeholder="Select a task...",
+                ),
                 dcc.Dropdown(
                     id="target-variable-dropdown",
                     options=target_variable_options,
                     value="",
+                    style={"margin-top": "10px"},
+                    placeholder="Select a target variable...",
                 ),
                 html.Div(id="ml-results"),
             ]
@@ -353,7 +360,12 @@ def update_chart(chart_type, column_name):
             [
                 html.H3("Scatter plot axes"),
                 dcc.Dropdown(id="x-axis-dropdown", options=column_options, value=""),
-                dcc.Dropdown(id="y-axis-dropdown", options=column_options, value=""),
+                dcc.Dropdown(
+                    id="y-axis-dropdown",
+                    options=column_options,
+                    value="",
+                    style={"margin-top": "10px"},
+                ),
                 html.Div(id="scatter-chart-container"),
             ]
         )
@@ -417,6 +429,29 @@ def update_chart(chart_type, column_name):
     else:
         # Return an error message if no chart type is selected
         return html.Div("Select a chart type.")
+
+
+@dash.callback(
+    Output("scatter-chart-container", "children"),
+    [Input("x-axis-dropdown", "value"), Input("y-axis-dropdown", "value")],
+    prevent_initial_call=True,
+)
+def update_scatter_chart(x_axis, y_axis):
+    """
+    Update the scatter chart based on the selected x-axis and y-axis values.
+
+    Parameters:
+    - x_axis (str): The selected x-axis value.
+    - y_axis (str): The selected y-axis value.
+
+    Returns:
+    - dash_html_components.Div: The scatter chart container with the updated scatter chart.
+    """
+    if not x_axis or not y_axis:
+        return html.Div("Select valid x-axis and y-axis values.")
+    df = pd.read_csv("local_data.csv")
+    fig = px.scatter(df, x=x_axis, y=y_axis)
+    return dcc.Graph(figure=fig)
 
 
 @dash.callback(
