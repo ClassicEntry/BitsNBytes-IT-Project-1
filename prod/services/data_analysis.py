@@ -24,6 +24,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import LabelEncoder
 
 # Register the page with Dash
 dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
@@ -416,27 +417,6 @@ def update_chart(chart_type, column_name):
     else:
         # Return an error message if no chart type is selected
         return html.Div("Select a chart type.")
-
-
-@dash.callback(
-    Output("scatter-chart-container", "children"),
-    [Input("x-axis-dropdown", "value"), Input("y-axis-dropdown", "value")],
-    prevent_initial_call=True,
-)
-def update_scatter_chart(x_axis, y_axis):
-    """
-    Update the scatter chart based on the selected x-axis and y-axis values.
-
-    Parameters:
-    - x_axis (str): The selected x-axis value.
-    - y_axis (str): The selected y-axis value.
-
-    Returns:
-    - dash_html_components.Div: The scatter chart container with the updated scatter chart.
-    """
-    df = pd.read_csv("local_data.csv")
-    fig = px.scatter(df, x=x_axis, y=y_axis)
-    return dcc.Graph(figure=fig)
 
 
 @dash.callback(

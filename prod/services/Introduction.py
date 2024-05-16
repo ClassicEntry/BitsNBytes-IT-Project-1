@@ -28,14 +28,20 @@ layout = dbc.Container(
                             className="mb-4 text-light text-center fw-bold fs-1",
                         ),
                         html.H3(
-                            "This is a Data Analysis App for exploring the data in a CSV file. "
+                            "PyExploratory is a Data Analysis App written in Python using Dash and Plotly. "
                             "You can import data, clean data, and visualise data. "
                             "You will also be able to create the dashboard.",
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
-                            "To get started, click on the Data Analysis tab in the sidebar and click on the Table tab to import a CSV or Excel file. "
-                            + "Once you have imported the data, you can click on the Summary Tab to clean the data with the techniques off.",
+                            "To get started, click on the Import Data tab in the sidebar and click or drag to import a CSV, Excel or JSON file. "
+                            + "Once you have imported the data, you can click on Data Analysis Tab to view your data.",
+                            "You can perform data cleaning operations in the Import Data tab. ",
+                            className="mb-4 text-light text-center",
+                        ),
+                        html.H3(
+                            "You can perform machine learning operations on your data in the Machine Learning tab.",
+                            "",
                             className="mb-4 text-light text-center",
                         ),
                     ],

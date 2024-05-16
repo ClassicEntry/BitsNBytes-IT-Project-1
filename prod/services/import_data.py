@@ -12,6 +12,7 @@ import datetime
 import base64
 import io
 import dash
+import json
 import pandas as pd
 import numpy as np
 from dash import html, dcc, dash_table
@@ -153,6 +154,10 @@ def parse_contents(contents, filename, date):
             df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
         elif extension in [".xlsx", ".xls"]:
             df = pd.read_excel(io.BytesIO(decoded))
+        elif extension == ".json":
+            json_str = decoded.decode("utf-8")
+            json_data = json.loads(json_str)
+            df = pd.json_normalize(json_data)
         else:
             raise ValueError("Unsupported file extension")
     except FileNotFoundError as e:
