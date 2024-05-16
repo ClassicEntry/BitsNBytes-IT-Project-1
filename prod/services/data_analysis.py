@@ -17,6 +17,14 @@ import pandas as pd
 import numpy as np
 from dash.dependencies import Input, Output
 import plotly.express as px
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.cluster import KMeans
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.decomposition import PCA
 
 # Register the page with Dash
 dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
@@ -29,12 +37,53 @@ layout = html.Div(
             id="tabs",
             value="tab-summary",
             children=[
-        dcc.Tab(label="Summary", value="tab-summary", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '15px'}),
-        dcc.Tab(label="Table", value="tab-table", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
-        dcc.Tab(label="Charts", value="tab-charts", style={'backgroundColor': '#007BFF', 'color': 'white', 'borderRadius': '15px', 'margin': '10px'}),
-    ],
-    style={'width': '50%', 'margin': 'auto', 'padding': '10px', 'backgroundColor': '#343A40'}  # Center the tabs, set their width to 50%, add some padding, and set the background color to dark
-
+                dcc.Tab(
+                    label="Summary",
+                    value="tab-summary",
+                    style={
+                        "backgroundColor": "#007BFF",
+                        "color": "white",
+                        "borderRadius": "15px",
+                        "margin": "10px",
+                    },
+                ),
+                dcc.Tab(
+                    label="Table",
+                    value="tab-table",
+                    style={
+                        "backgroundColor": "#007BFF",
+                        "color": "white",
+                        "borderRadius": "15px",
+                        "margin": "10px",
+                    },
+                ),
+                dcc.Tab(
+                    label="Machine Learning",
+                    value="tab-machine-learning",
+                    style={
+                        "backgroundColor": "#007BFF",
+                        "color": "white",
+                        "borderRadius": "15px",
+                        "margin": "10px",
+                    },
+                ),
+                dcc.Tab(
+                    label="Charts",
+                    value="tab-charts",
+                    style={
+                        "backgroundColor": "#007BFF",
+                        "color": "white",
+                        "borderRadius": "15px",
+                        "margin": "10px",
+                    },
+                ),
+            ],
+            style={
+                "width": "50%",
+                "margin": "auto",
+                "padding": "10px",
+                "backgroundColor": "#343A40",
+            },  # Center the tabs, set their width to 50%, add some padding, and set the background color to dark
         ),
         html.Div(id="tabs-content"),
     ]
@@ -79,8 +128,10 @@ def render_tab_content(tab):
                             ]
                         ),
                         className="mb-3",  # add some bottom margin for each card
-                        style={'backgroundColor': '#343A40', 'color': 'white'}  # Set the background color to dark and the text color to white
-
+                        style={
+                            "backgroundColor": "#343A40",
+                            "color": "white",
+                        },  # Set the background color to dark and the text color to white
                     )
                 else:
                     # Generate bar chart for categorical data
@@ -99,45 +150,62 @@ def render_tab_content(tab):
                             ]
                         ),
                         className="mb-3",  # add some bottom margin for each card
-                        style={'backgroundColor': '#343A40', 'color': 'white'}  # Set the background color to dark and the text color to white
-
+                        style={
+                            "backgroundColor": "#343A40",
+                            "color": "white",
+                        },  # Set the background color to dark and the text color to white
                     )
 
                 # Calculate summary statistics for the data
                 # Calculate summary statistics for the data
                 summary = df[col].describe().reset_index()
-                summary['data_type'] = str(df[col].dtype)
-                #show the missing values as a values and percentage in brackets
-                summary['missing_values'] = df[col].isnull().sum()
-                summary['missing_values_percentage'] = (df[col].isnull().sum() / len(df[col])) * 100
-                summary['missing_values_percentage'] = summary['missing_values_percentage'].map("{:.2f}%".format)
-                summary.columns = ['Statistic', 'Value', 'Data Type', 'Missing Values', 'Missing Values (%)']
+                summary["data_type"] = str(df[col].dtype)
+                # show the missing values as a values and percentage in brackets
+                summary["missing_values"] = df[col].isnull().sum()
+                summary["missing_values_percentage"] = (
+                    df[col].isnull().sum() / len(df[col])
+                ) * 100
+                summary["missing_values_percentage"] = summary[
+                    "missing_values_percentage"
+                ].map("{:.2f}%".format)
+                summary.columns = [
+                    "Statistic",
+                    "Value",
+                    "Data Type",
+                    "Missing Values",
+                    "Missing Values (%)",
+                ]
 
                 summary_table = dash_table.DataTable(
                     data=summary.to_dict("records"),
                     columns=[{"name": i, "id": i} for i in summary.columns],
-                    style_data={'whiteSpace': 'normal', 'height': 'auto'},  # Wrap the cell content and adjust the cell height
+                    style_data={
+                        "whiteSpace": "normal",
+                        "height": "auto",
+                    },  # Wrap the cell content and adjust the cell height
                     style_cell={
-                        'textAlign': 'left',
-                        'backgroundColor': '#1e2130',  # Set the cell background color to dark
-                        'color': 'white',  # Set the cell text color to white
-                        'border': '1px solid white'  # Add a border to the cells
+                        "textAlign": "left",
+                        "backgroundColor": "#1e2130",  # Set the cell background color to dark
+                        "color": "white",  # Set the cell text color to white
+                        "border": "1px solid white",  # Add a border to the cells
                     },
                     style_header={
-                        'backgroundColor': '#007BFF',  # Set the header background color to blue
-                        'fontWeight': 'bold',  # Make the header text bold
-                        'color': 'white'  # Set the header text color to white
+                        "backgroundColor": "#007BFF",  # Set the header background color to blue
+                        "fontWeight": "bold",  # Make the header text bold
+                        "color": "white",  # Set the header text color to white
                     },
                     style_table={
-                        'overflowX': 'auto',  # Add a horizontal scrollbar if the content overflows
-                        'maxHeight': '300px',  # Set a maximum height for the table
-                        'overflowY': 'auto'  # Add a vertical scrollbar if the content overflows
+                        "overflowX": "auto",  # Add a horizontal scrollbar if the content overflows
+                        "maxHeight": "300px",  # Set a maximum height for the table
+                        "overflowY": "auto",  # Add a vertical scrollbar if the content overflows
                     },
                     fill_width=False,
                 )
 
                 # Wrap the card content and summary table in a dbc.Col
-                card = dbc.Col([dbc.Card(card_content, className="mb-3"), summary_table], md=4)
+                card = dbc.Col(
+                    [dbc.Card(card_content, className="mb-3"), summary_table], md=4
+                )
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
@@ -151,8 +219,6 @@ def render_tab_content(tab):
             return html.Div(
                 "Data file not found. Please upload data in the 'Import Data' section."
             )
-    
-    
 
     elif tab == "tab-table":
         try:
@@ -191,6 +257,33 @@ def render_tab_content(tab):
                 ),
                 dcc.Dropdown(id="column-dropdown", options=column_options, value=""),
                 html.Div(id="chart-container"),
+            ]
+        )
+    # Add a new case in the render_tab_content function
+    elif tab == "tab-machine-learning":
+        # Read the data from the local_data.csv file
+        df = pd.read_csv("local_data.csv")
+
+        # Create options for the task and target variable dropdowns
+        task_options = [
+            {"label": "Time Series Analysis", "value": "time_series"},
+            {"label": "Feature Extraction", "value": "feature_extraction"},
+            {"label": "Clustering", "value": "clustering"},
+            {"label": "Classification", "value": "classification"},
+            {"label": "Feature Selection", "value": "feature_selection"},
+        ]
+        target_variable_options = [{"label": col, "value": col} for col in df.columns]
+
+        # Return a Div component with dropdowns for task and target variable selection
+        return html.Div(
+            [
+                dcc.Dropdown(id="task-dropdown", options=task_options, value=""),
+                dcc.Dropdown(
+                    id="target-variable-dropdown",
+                    options=target_variable_options,
+                    value="",
+                ),
+                html.Div(id="ml-results"),
             ]
         )
 
@@ -257,3 +350,90 @@ def update_scatter_chart(x_axis, y_axis):
     df = pd.read_csv("local_data.csv")
     fig = px.scatter(df, x=x_axis, y=y_axis)
     return dcc.Graph(figure=fig)
+
+
+# Add a new callback function to perform the selected machine learning task
+@dash.callback(
+    Output("ml-results", "children"),
+    [Input("task-dropdown", "value"), Input("target-variable-dropdown", "value")],
+    prevent_initial_call=True,
+)
+def perform_ml_task(task, target_variable):
+    # Read the data from the local_data.csv file
+    df = pd.read_csv("local_data.csv")
+
+    if task == "time_series":
+        # Perform time series analysis
+        df[target_variable] = pd.to_datetime(df[target_variable])
+        df = df.set_index(target_variable)
+        return dcc.Graph(figure=px.line(df, y=df.columns[0]))
+
+    elif task == "feature_extraction":
+        # Perform feature extraction using PCA
+        features = df.drop(columns=[target_variable])
+        pca = PCA(n_components=2)
+        components = pca.fit_transform(features)
+        return dcc.Graph(
+            figure=px.scatter(
+                components,
+                x=0,
+                y=1,
+                title="PCA Feature Extraction",
+                labels={"0": "PCA 1", "1": "PCA 2"},
+            )
+        )
+
+    elif task == "clustering":
+        # Perform clustering using KMeans
+        features = df.drop(columns=[target_variable])
+        kmeans = KMeans(n_clusters=3)
+        df["Cluster"] = kmeans.fit_predict(features)
+        return dcc.Graph(
+            figure=px.scatter(
+                df, x=features.columns[0], y=features.columns[1], color="Cluster"
+            )
+        )
+
+    elif task == "classification":
+        # Perform classification using RandomForestClassifier
+        features = df.drop(columns=[target_variable])
+        target = df[target_variable]
+        X_train, X_test, y_train, y_test = train_test_split(
+            features, target, test_size=0.3
+        )
+        scaler = StandardScaler().fit(X_train)
+        X_train_scaled = scaler.transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        clf = RandomForestClassifier()
+        clf.fit(X_train_scaled, y_train)
+        y_pred = clf.predict(X_test_scaled)
+        report = classification_report(y_test, y_pred, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
+        return dash_table.DataTable(
+            data=report_df.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in report_df.columns],
+            style_cell={"textAlign": "left"},
+            style_header={"backgroundColor": "white", "fontWeight": "bold"},
+            fill_width=False,
+        )
+
+    elif task == "feature_selection":
+        # Perform feature selection using SelectKBest
+        features = df.drop(columns=[target_variable])
+        target = df[target_variable]
+        selector = SelectKBest(score_func=chi2, k=2)
+        selector.fit(features, target)
+        scores = pd.DataFrame(
+            selector.scores_, index=features.columns, columns=["Score"]
+        )
+        scores = scores.sort_values(by="Score", ascending=False).reset_index()
+        return dash_table.DataTable(
+            data=scores.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in scores.columns],
+            style_cell={"textAlign": "left"},
+            style_header={"backgroundColor": "white", "fontWeight": "bold"},
+            fill_width=False,
+        )
+    else:
+        # Return an error message if no task is selected
+        return html.Div("Select a task.")

@@ -142,6 +142,8 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
     try:
         if "csv" in filename:
             df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+        elif "xlsx" in filename:
+            df = pd.read_excel(io.BytesIO(decoded))
         elif "xls" in filename:
             df = pd.read_excel(io.BytesIO(decoded))
     except FileNotFoundError as e:
