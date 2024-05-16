@@ -18,6 +18,7 @@ from dash import html, dcc, dash_table
 from dash.dependencies import Input, Output, State
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
+import os
 
 
 dash.register_page(
@@ -37,12 +38,12 @@ def get_layout():
     """
     layout = html.Div(
         [
-            html.P("Import Data", className="text-dark text-left fw-bold fs-1"),
+            html.H1("Import Data", className="text-dark text-center fw-bold fs-1"),
             html.Div(
                 [
                     html.Div(
                         [
-                            html.Label("Select File"),
+                            html.Label("Select File:"),
                             dcc.Upload(
                                 id="upload-data",
                                 children=html.Div(
@@ -61,7 +62,6 @@ def get_layout():
                                 multiple=True,
                             ),
                         ],
-                        className="col-6",
                     ),
                 ],
                 className="row",
@@ -99,18 +99,26 @@ def get_layout():
                             {"label": "Drop Duplicates", "value": "drop_duplicates"},
                         ],
                         placeholder="Select Cleaning Operation...",
+                        style={"margin-top": "10px"},
                     ),
                     dcc.Input(
                         id="fill-value",
                         type="text",
                         placeholder="Value to apply to cleaning operation/fill NA with...",
+                        style={"margin-top": "10px"},
                     ),
                     dcc.Input(
                         id="new-column-name",
                         type="text",
                         placeholder="New column name...",
+                        style={"margin-top": "10px"},
                     ),
-                    html.Button("Apply Cleaning", id="clean-data-btn", n_clicks=0),
+                    html.Button(
+                        "Apply Cleaning",
+                        id="clean-data-btn",
+                        n_clicks=0,
+                        style={"margin-top": "10px"},
+                    ),
                     html.Div(id="cleaning-result"),
                 ],
                 className="row",
@@ -124,7 +132,7 @@ def get_layout():
 layout = get_layout()
 
 
-def parse_contents(contents, filename, date, column_to_clean=None, operation=None):
+def parse_contents(contents, filename, date):
     """
     Parse the contents of an uploaded file.
 
@@ -139,26 +147,17 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
     content_type, content_string = contents.split(",")
 
     decoded = base64.b64decode(content_string)
+    extension = os.path.splitext(filename)[1].lower()
     try:
-        if "csv" in filename:
+        if extension == ".csv":
             df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-        elif "xlsx" in filename:
+        elif extension in [".xlsx", ".xls"]:
             df = pd.read_excel(io.BytesIO(decoded))
-        elif "xls" in filename:
-            df = pd.read_excel(io.BytesIO(decoded))
+        else:
+            raise ValueError("Unsupported file extension")
     except FileNotFoundError as e:
-        print(e)
+        print(f"Error processing the file {filename}: {e}")
         return html.Div(["There was an error processing this file."])
-
-    if column_to_clean and column_to_clean in df.columns:
-        if operation == "lstrip":
-            df[column_to_clean] = df[column_to_clean].str.lstrip()
-        elif operation == "rstrip":
-            df[column_to_clean] = df[column_to_clean].str.rstrip()
-        elif operation == "alnum":
-            df[column_to_clean] = df[column_to_clean].str.replace(
-                "[^a-zA-Z0-9]", "", regex=True
-            )
 
     df.to_csv("local_data.csv", index=False)
 
@@ -167,13 +166,17 @@ def parse_contents(contents, filename, date, column_to_clean=None, operation=Non
             html.H5(filename),
             html.H6(datetime.datetime.fromtimestamp(date)),
             dash_table.DataTable(
-                df.to_dict("records"), [{"name": i, "id": i} for i in df.columns]
-            ),
-            html.Hr(),
-            html.Div("Raw Content"),
-            html.Pre(
-                contents[0:200] + "...",
-                style={"whiteSpace": "pre-wrap", "wordBreak": "break-all"},
+                data=df.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df.columns],
+                page_action="native",
+                page_size=50,
+                style_table={
+                    "overflowX": "scroll",
+                },
+                style_cell={
+                    "whiteSpace": "normal",
+                    "height": "auto",
+                },
             ),
         ]
     )
@@ -246,7 +249,9 @@ def apply_data_cleaning(
                     "[^a-zA-Z0-9]", "", regex=True
                 )
             elif operation == "dropna":
-                df = df.dropna(subset=[column_to_clean])
+                df[column_to_clean] = (
+                    df[column_to_clean].dropna().reset_index(drop=True)
+                )
             elif operation == "fillna":
                 if fill_value is None:
                     if df[column_to_clean].dtype == "object":
@@ -275,12 +280,35 @@ def apply_data_cleaning(
             elif operation == "rename_column":
                 df = df.rename(columns={column_to_clean: new_column_name})
             elif operation == "normalize":
+                # Convert column to numeric, coercing errors
+                df[column_to_clean] = pd.to_numeric(
+                    df[column_to_clean], errors="coerce"
+                )
+                df[column_to_clean] = df[column_to_clean].fillna(
+                    0
+                )  # Replace NaNs with 0 for scaling
                 scaler = MinMaxScaler()
                 df[column_to_clean] = scaler.fit_transform(df[[column_to_clean]])
             elif operation == "remove_outliers":
-                df = df[(np.abs(stats.zscore(df[column_to_clean])) < 3)]
+                # Convert column to numeric, coercing errors
+                df[column_to_clean] = pd.to_numeric(
+                    df[column_to_clean], errors="coerce"
+                )
+                # Calculate z-scores, exclude NaNs
+                z_scores = np.abs(stats.zscore(df[column_to_clean].dropna()))
+                # Create a full-length boolean mask
+                full_mask = df[
+                    column_to_clean
+                ].notna()  # Create a mask for non-NaN values
+                full_mask.loc[df[column_to_clean].notna()] = (
+                    z_scores >= 3
+                )  # Apply the z-score mask
+                # Set outliers to None
+                df.loc[full_mask, column_to_clean] = None
             elif operation == "drop_duplicates":
-                df = df.drop_duplicates(subset=[column_to_clean])
+                df[column_to_clean] = (
+                    df[column_to_clean].drop_duplicates().reset_index(drop=True)
+                )
 
             df.to_csv("local_data.csv", index=False)
             return "Data cleaning applied and saved."
