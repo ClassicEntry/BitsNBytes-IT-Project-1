@@ -24,6 +24,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import LabelEncoder
 
 # Register the page with Dash
 dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
@@ -419,27 +420,6 @@ def update_chart(chart_type, column_name):
 
 
 @dash.callback(
-    Output("scatter-chart-container", "children"),
-    [Input("x-axis-dropdown", "value"), Input("y-axis-dropdown", "value")],
-    prevent_initial_call=True,
-)
-def update_scatter_chart(x_axis, y_axis):
-    """
-    Update the scatter chart based on the selected x-axis and y-axis values.
-
-    Parameters:
-    - x_axis (str): The selected x-axis value.
-    - y_axis (str): The selected y-axis value.
-
-    Returns:
-    - dash_html_components.Div: The scatter chart container with the updated scatter chart.
-    """
-    df = pd.read_csv("local_data.csv")
-    fig = px.scatter(df, x=x_axis, y=y_axis)
-    return dcc.Graph(figure=fig)
-
-
-@dash.callback(
     Output("ml-results", "children"),
     [Input("task-dropdown", "value"), Input("target-variable-dropdown", "value")],
     prevent_initial_call=True,
@@ -459,7 +439,9 @@ def perform_ml_task(task, target_variable):
     if task == "time_series":
         try:
             # Perform time series analysis
-            df[target_variable] = pd.to_datetime(df[target_variable])
+            df[target_variable] = pd.to_datetime(
+                df[target_variable], infer_datetime_format=True
+            )
             df = df.set_index(target_variable)
             return dcc.Graph(
                 figure=px.line(df, y=df.columns[0], title="Time Series Analysis")
@@ -471,8 +453,10 @@ def perform_ml_task(task, target_variable):
         try:
             # Perform feature extraction using PCA
             features = df.drop(columns=[target_variable])
-            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-                return html.Div("Feature extraction requires numeric data.")
+            for col in features.columns:
+                if features[col].dtype == "object":
+                    le = LabelEncoder()
+                    features[col] = le.fit_transform(features[col])
             pca = PCA(n_components=2)
             components = pca.fit_transform(features)
             components_df = pd.DataFrame(data=components, columns=["PCA 1", "PCA 2"])
@@ -488,8 +472,10 @@ def perform_ml_task(task, target_variable):
         try:
             # Perform clustering using KMeans
             features = df.drop(columns=[target_variable])
-            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-                return html.Div("Clustering requires numeric data.")
+            for col in features.columns:
+                if features[col].dtype == "object":
+                    le = LabelEncoder()
+                    features[col] = le.fit_transform(features[col])
             kmeans = KMeans(n_clusters=3)
             df["Cluster"] = kmeans.fit_predict(features)
             return dcc.Graph(
@@ -513,6 +499,13 @@ def perform_ml_task(task, target_variable):
                 return html.Div(
                     "Classification requires more than one class in the target variable."
                 )
+            for col in features.columns:
+                if features[col].dtype == "object":
+                    le = LabelEncoder()
+                    features[col] = le.fit_transform(features[col])
+            if target.dtype == "object":
+                le = LabelEncoder()
+                target = le.fit_transform(target)
             X_train, X_test, y_train, y_test = train_test_split(
                 features, target, test_size=0.3, random_state=42
             )
@@ -522,7 +515,9 @@ def perform_ml_task(task, target_variable):
             clf = RandomForestClassifier()
             clf.fit(X_train_scaled, y_train)
             y_pred = clf.predict(X_test_scaled)
-            report = classification_report(y_test, y_pred, output_dict=True)
+            report = classification_report(
+                y_test, y_pred, output_dict=True, zero_division=0
+            )
             report_df = pd.DataFrame(report).transpose()
             return dash_table.DataTable(
                 data=report_df.to_dict("records"),
@@ -540,7 +535,13 @@ def perform_ml_task(task, target_variable):
             features = df.drop(columns=[target_variable])
             target = df[target_variable]
             if not np.issubdtype(target.dtype, np.number):
-                return html.Div("Feature selection requires a numeric target variable.")
+                return html.Div(
+                    "Feature selection requires a numeric target variable (including floats)."
+                )
+            for col in features.columns:
+                if features[col].dtype == "object":
+                    le = LabelEncoder()
+                    features[col] = le.fit_transform(features[col])
             selector = SelectKBest(score_func=chi2, k=2)
             selector.fit(features, target)
             scores = pd.DataFrame(
