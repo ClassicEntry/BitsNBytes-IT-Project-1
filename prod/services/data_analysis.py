@@ -460,6 +460,16 @@ def update_scatter_chart(x_axis, y_axis):
     prevent_initial_call=True,
 )
 def perform_ml_task(task, target_variable):
+    """
+    Perform the selected machine learning task based on the user's selection.
+
+    Parameters:
+    - task (str): The selected machine learning task.
+    - target_variable (str): The selected target variable.
+
+    Returns:
+    - html.Div: The results of the machine learning task.
+    """
     # Read the data from the local_data.csv file
     try:
         df = pd.read_csv("local_data.csv")
