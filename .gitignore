@@ -1,0 +1,11 @@
+prod/__pycache__/
+prod/services/__pycache__/
+test/__pycache__
+.pytest_cache/
+prod/tempCodeRunnerFile.py
+prod/.DS_Store
+prod/services/.DS_Store
+local_data.csv
+prod/.DS_Store
+.DS_Store
+.vscode/settings.json

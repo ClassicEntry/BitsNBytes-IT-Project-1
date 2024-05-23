@@ -1,6 +1,14 @@
-black==24.2.0
-dash==2.15.0
-pandas==2.2.1
-plotly==5.9.0
-seaborn
+black
+dash
+pandas
+plotly
 scikit-learn
+dash_bootstrap_components
+scipy
+numpy
+python-dateutil
+dash[testing]
+#dash\[testing] #Uncomment for Mac
+pytest
+pytest-webdriver
+selenium
