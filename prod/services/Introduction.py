@@ -23,25 +23,31 @@ layout = dbc.Container(
             [
                 dbc.Col(
                     [
-                        html.H1("Introduction", className="mb-4 text-light"),
-                        html.P(
-                            "This is a Data Analysis App for exploring the data in a CSV file. "
-                            "You can import data, clean data, and visualise data. "
-                            "You will also be able to create the dashboard.",
-                            className="mb-4 text-light",
+                        html.H1(
+                            "Introduction",
+                            className="mb-4 text-light text-center fw-bold fs-1",
                         ),
-                        html.P(
-                            "To get started, click on the Import Data link in the sidebar to import a CSV file."
-                            + "Once you have imported the data, you can click on the Clean Data link to clean the data with the techniques off.",
-                            className="text-light",
+                        html.H3(
+                            "PyExploratory is a Data Analysis App written in Python using Dash and Plotly. "
+                            "You can import data, clean data, and visualise data. ",
+                            className="mb-4 text-light text-center",
+                        ),
+                        html.H3(
+                            "To get started, click on the Import Data tab in the sidebar and click or drag to import a CSV, Excel or JSON file. "
+                            + "Once you have imported the data, you can click on Data Analysis Tab to view your data.",
+                            "You can perform data cleaning operations in the Import Data tab. ",
+                            className="mb-4 text-light text-center",
+                        ),
+                        html.H3(
+                            "You can perform machine learning operations on your data in the Machine Learning tab.",
+                            "",
+                            className="mb-4 text-light text-center",
                         ),
                     ],
-                    md=6,
                 ),
             ],
         ),
     ],
     fluid=True,
-    # Set background color
     style={"height": "100vh", "background-color": "#4c4d4d"},
 )

@@ -1,0 +1,12 @@
+[
+  {"Date": "2023-01-01", "Feature1": 1.2, "Feature2": 3.4, "Feature3": 5.6, "Class": "A", "Target": 10},
+  {"Date": "2023-01-02", "Feature1": 1.4, "Feature2": 3.5, "Feature3": 5.7, "Class": "B", "Target": 15},
+  {"Date": "2023-01-03", "Feature1": 1.6, "Feature2": 3.6, "Feature3": 5.8, "Class": "A", "Target": 20},
+  {"Date": "2023-01-04", "Feature1": 1.8, "Feature2": 3.7, "Feature3": 5.9, "Class": "A", "Target": 25},
+  {"Date": "2023-01-05", "Feature1": 2.0, "Feature2": 3.8, "Feature3": 6.0, "Class": "B", "Target": 30},
+  {"Date": "2023-01-06", "Feature1": 2.2, "Feature2": 3.9, "Feature3": 6.1, "Class": "C", "Target": 35},
+  {"Date": "2023-01-07", "Feature1": 2.4, "Feature2": 4.0, "Feature3": 6.2, "Class": "C", "Target": 40},
+  {"Date": "2023-01-08", "Feature1": 2.6, "Feature2": 4.1, "Feature3": 6.3, "Class": "B", "Target": 45},
+  {"Date": "2023-01-09", "Feature1": 2.8, "Feature2": 4.2, "Feature3": 6.4, "Class": "A", "Target": 50},
+  {"Date": "2023-01-10", "Feature1": 3.0, "Feature2": 4.3, "Feature3": 6.5, "Class": "A", "Target": 55}
+]

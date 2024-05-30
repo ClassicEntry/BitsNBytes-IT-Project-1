@@ -30,6 +30,7 @@ app = Dash(
     pages_folder="services",
     use_pages=True,
     external_stylesheets=external_css,
+    suppress_callback_exceptions=True,
 )
 
 # Styling for sidebar
@@ -41,13 +42,16 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
     "background-color": "#282829",
+    "z-index": "1",
 }
 
 # Styling for content area
 CONTENT_STYLE = {
-    "margin-left": "18rem",
+    "margin-left": "15rem",
+    "position": "absolute",
+    #marign to the right
     "margin-right": "2rem",
-    "padding": "2rem 1rem",
+
 }
 
 # Create the sidebar navigation hierarchy

@@ -18,6 +18,4 @@ To test this application please use the test_data.csv found in the test folder. 
 
 ## Testing regarding Unit test cases
 
-Unit test cases are currently under development and do not work. Do not run them as they will fail this is due to the code being updated regularly, thus unit test cases do not work fully.
-
-Refer to the Test Case GUI Functionality - Ver 1 document found on Teams for testing done.
+Refer to the Test Case GUI Functionality - Ver 2 document found on Teams for testing done.
