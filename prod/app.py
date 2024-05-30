@@ -53,8 +53,6 @@ CONTENT_STYLE = {
     "right": "0rem",
     "bottom": "0rem",
     "left": "0rem",
-    "padding": "2rem 1rem",
-    
 }
 
 # Create the sidebar navigation hierarchy
