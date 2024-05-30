@@ -61,32 +61,33 @@ selected_tab_style = {
 # Define the layout of the page
 layout = html.Div(
     [
-        html.H1("Data Analysis", style={"color": "white"}),
 
-        html.H1("Data Analysis", className="text-dark text-center fw-bold fs-1"),
+        html.H1("Data Analysis", className="text-light text-center fw-bold fs-1"),
         html.Div(
             [
                 html.Div(
                     [
-                        html.Label("Select File:"),
+                        #html.Label("Select File:" , style={"color": "white"} ),
                         dcc.Upload(
                             id="upload-data",
                             children=html.Div(
-                                ["Drag and Drop or ", html.A("Select Files")]
+                                ["Drag and Drop or ",  html.A("Select Files", style={"color": "white"}) ],
+                                style={"color": "white"},
                             ),
                             style={
-                                "width": "100%",
+                                "width": "50%",
                                 "height": "60px",
                                 "lineHeight": "60px",
-                                "borderWidth": "1px",
+                                "borderWidth": "3px",
                                 "borderStyle": "dashed",
                                 "borderRadius": "5px",
                                 "textAlign": "center",
-                                "margin": "10px",
+                                "margin": "10px auto",  
                             },
                             multiple=True,
                         ),
                     ],
+                    
                 ),
             ],
             className="row",
@@ -128,12 +129,11 @@ layout = html.Div(
                 "width": "50%",
                 "margin": "0 auto",
                 "padding": "5px",
-                "backgroundColor": "#343A40",
             },
         ),
         html.Div(id="tabs-content", style={"padding": "20px"}),
     ],
-    style={"backgroundColor": "#282829"},
+    style={"backgroundColor": "#4c4d4d"},
 )
 
 

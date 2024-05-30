@@ -44,10 +44,12 @@ layout = dbc.Container(
                             className="mb-4 text-light text-center",
                         ),
                     ],
+                    style={"padding": "20px"},  # Add padding to the column
                 ),
             ],
+            style={"margin": "0", "width": "100%"},  # Remove margin and set width to 100% for the row
         ),
     ],
     fluid=True,
-    style={"height": "100vh", "background-color": "#4c4d4d"},
+    style={"height": "100vh", "background-color": "#4c4d4d", "padding": "0", "margin": "0"},  # Remove padding and margin from the container
 )
