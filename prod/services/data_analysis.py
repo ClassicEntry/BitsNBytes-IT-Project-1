@@ -299,6 +299,15 @@ def render_tab_content(tab):
                         style_cell={
                             "whiteSpace": "normal",
                             "height": "auto",
+                            "textAlign": "left",
+                            "backgroundColor": "#1e2130",  # Set the cell background color to dark
+                            "color": "white",  # Set the cell text color to white
+                            "border": "1px solid white",  # Add a border to the cells
+                        },
+                        style_header={
+                            "backgroundColor": "#007BFF",  # Set the header background color to blue
+                            "fontWeight": "bold",  # Make the header text bold
+                            "color": "white",  # Set the header text color to white
                         },
                         editable=True,
                     ),
@@ -409,7 +418,7 @@ def render_tab_content(tab):
         # Return a Div component with dropdowns for chart type and column selection
         return html.Div(
             [
-                html.H3("Chart Types"),
+                html.H3("Chart Types", style={"color": "white"}),
                 dcc.Dropdown(
                     id="chart-type-dropdown",
                     options=[
