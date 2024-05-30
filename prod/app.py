@@ -39,7 +39,7 @@ SIDEBAR_STYLE = {
     "top": "0rem",
     "left": 0,
     "bottom": 0,
-    "width": "15rem",
+    "width": "16rem",
     "padding": "2rem 1rem",
     "background-color": "#282829",
     "z-index": "1",
@@ -49,6 +49,9 @@ SIDEBAR_STYLE = {
 CONTENT_STYLE = {
     "margin-left": "15rem",
     "position": "absolute",
+    #marign to the right
+    "margin-right": "2rem",
+
 }
 
 # Create the sidebar navigation hierarchy

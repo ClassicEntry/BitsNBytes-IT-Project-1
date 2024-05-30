@@ -29,8 +29,7 @@ layout = dbc.Container(
                         ),
                         html.H3(
                             "PyExploratory is a Data Analysis App written in Python using Dash and Plotly. "
-                            "You can import data, clean data, and visualise data. "
-                            "You will also be able to create the dashboard.",
+                            "You can import data, clean data, and visualise data. ",
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
