@@ -267,9 +267,7 @@ def render_tab_content(tab):
 
         except FileNotFoundError:
             # Return an error message if the data file is not found
-            return html.Div(
-                "Data file not found. Please upload data in the 'Import Data' section."
-            )
+            return html.Div("Data file not found. Please upload data in the drop box.")
 
     elif tab == "tab-table":
 
@@ -390,9 +388,7 @@ def render_tab_content(tab):
             )
         except FileNotFoundError:
             # Return an error message if the data file is not found
-            return html.Div(
-                "Data file not found. Please upload data in the 'Import Data' section."
-            )
+            return html.Div("Data file not found. Please upload data in the drop box.")
 
     elif tab == "tab-charts":
         # Read the data from the local_data.csv file
@@ -613,9 +609,7 @@ def perform_ml_task(task, target_variable):
     try:
         df = pd.read_csv("local_data.csv")
     except FileNotFoundError:
-        return html.Div(
-            "Data file not found. Please upload data in the 'Import Data' section."
-        )
+        return html.Div("Data file not found. Please upload data in the drop box.")
 
     if target_variable not in df.columns:
         return html.Div("Target variable not found in the dataset.")
