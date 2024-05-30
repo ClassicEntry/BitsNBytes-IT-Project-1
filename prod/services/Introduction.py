@@ -47,7 +47,7 @@ layout = dbc.Container(
                     style={"padding": "20px"},  # Add padding to the column
                 ),
             ],
-            style={"margin": "0", "width": "100%"},  # Remove margin and set width to 100% for the row
+            style={"margin": "0", "width": "80%"},  # Remove margin and set width to 100% for the row
         ),
     ],
     fluid=True,
