@@ -42,6 +42,6 @@ layout = dbc.Container(
         ),
     ],
     fluid=True,
-    # Set background color to blue
+    # Set background color
     style={"height": "100vh", "background-color": "#4c4d4d"},
 )

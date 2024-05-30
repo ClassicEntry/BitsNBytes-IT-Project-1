@@ -27,12 +27,27 @@ from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
 
 # Register the page with Dash
-dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3)
+dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3 ,)
+
+# Define the styles
+tab_style = {
+    "backgroundColor": "#007BFF",
+    "color": "white",
+    "borderRadius": "15px",
+    "margin": "10px",
+}
+
+selected_tab_style = {
+    "backgroundColor": "#003366",
+    "color": "white",
+    "borderRadius": "15px",
+    "margin": "10px",
+}
 
 # Define the layout of the page
 layout = html.Div(
     [
-        html.H1("Data Analysis"),
+        html.H1("Data Analysis", style={"color": "white"}),
         dcc.Tabs(
             id="tabs",
             value="tab-summary",
@@ -40,53 +55,38 @@ layout = html.Div(
                 dcc.Tab(
                     label="Summary",
                     value="tab-summary",
-                    style={
-                        "backgroundColor": "#007BFF",
-                        "color": "white",
-                        "borderRadius": "15px",
-                        "margin": "10px",
-                    },
+                    style=tab_style,
+                    selected_style=selected_tab_style,
                 ),
                 dcc.Tab(
                     label="Table",
                     value="tab-table",
-                    style={
-                        "backgroundColor": "#007BFF",
-                        "color": "white",
-                        "borderRadius": "15px",
-                        "margin": "10px",
-                    },
+                    style=tab_style,
+                    selected_style=selected_tab_style,
                 ),
                 dcc.Tab(
                     label="Machine Learning",
                     value="tab-machine-learning",
-                    style={
-                        "backgroundColor": "#007BFF",
-                        "color": "white",
-                        "borderRadius": "15px",
-                        "margin": "10px",
-                    },
+                    style=tab_style,
+                    selected_style=selected_tab_style,
                 ),
                 dcc.Tab(
                     label="Charts",
                     value="tab-charts",
-                    style={
-                        "backgroundColor": "#007BFF",
-                        "color": "white",
-                        "borderRadius": "15px",
-                        "margin": "10px",
-                    },
+                    style=tab_style,
+                    selected_style=selected_tab_style,
                 ),
             ],
             style={
                 "width": "50%",
-                "margin": "auto",
-                "padding": "10px",
+                "margin": "0 auto",
+                "padding": "5px",
                 "backgroundColor": "#343A40",
-            },  # Center the tabs, set their width to 50%, add some padding, and set the background color to dark
+            },
         ),
-        html.Div(id="tabs-content"),
-    ]
+        html.Div(id="tabs-content", style={"padding": "20px"}),
+    ],
+    style={"backgroundColor": "#282829"},
 )
 
 
@@ -204,7 +204,7 @@ def render_tab_content(tab):
                 
                 # Wrap the card content and summary table in a dbc.Col
                 card = dbc.Col(
-                    [dbc.Card(card_content, className="mb-3")], md=4
+                    [dbc.Card(card_content, className="mb-3"  )], md=4
                 )
 
                 cards.append(card)
