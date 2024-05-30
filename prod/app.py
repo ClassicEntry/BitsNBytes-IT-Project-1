@@ -47,7 +47,7 @@ SIDEBAR_STYLE = {
 
 # Styling for content area
 CONTENT_STYLE = {
-    "margin-left": "15rem",
+    "margin-left": "15.25rem",
     "position": "absolute",
     "top": "0rem",
     "right": "0rem",
