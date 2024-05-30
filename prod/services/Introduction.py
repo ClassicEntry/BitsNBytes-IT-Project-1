@@ -51,5 +51,5 @@ layout = dbc.Container(
         ),
     ],
     fluid=True,
-    style={"height": "100vh", "background-color": "#4c4d4d", "padding": "0", "margin": "0"},  # Remove padding and margin from the container
+    style={"height": "100vh", "background-color": "#4c4d4d", "padding": "1rem", "margin": "0", "position": "fixed"},  # Remove padding and margin from the container
 )
