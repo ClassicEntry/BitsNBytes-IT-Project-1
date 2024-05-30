@@ -313,7 +313,7 @@ def render_tab_content(tab):
                     ),
                     html.Div(
                         [
-                            html.Label("Data Cleaning Options:"),
+                            html.Label("Data Cleaning Options:" , style={"color": "white"}),
                             dcc.Input(
                                 id="column-to-clean",
                                 type="text",
