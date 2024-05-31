@@ -41,7 +41,12 @@ import sqlite3
 
 
 # Register the page with Dash
-dash.register_page(__name__, path="/data_analysis", name="Data Analysis", order=3 ,)
+dash.register_page(
+    __name__,
+    path="/data_analysis",
+    name="Data Analysis",
+    order=3,
+)
 
 # Define the styles
 tab_style = {
@@ -61,17 +66,19 @@ selected_tab_style = {
 # Define the layout of the page
 layout = html.Div(
     [
-
         html.H1("Data Analysis", className="text-light text-center fw-bold fs-1"),
         html.Div(
             [
                 html.Div(
                     [
-                        #html.Label("Select File:" , style={"color": "white"} ),
+                        # html.Label("Select File:" , style={"color": "white"} ),
                         dcc.Upload(
                             id="upload-data",
                             children=html.Div(
-                                ["Drag and Drop or ",  html.A("Select Files", style={"color": "white"}) ],
+                                [
+                                    "Drag and Drop or ",
+                                    html.A("Select Files", style={"color": "white"}),
+                                ],
                                 style={"color": "white"},
                             ),
                             style={
@@ -82,18 +89,16 @@ layout = html.Div(
                                 "borderStyle": "dashed",
                                 "borderRadius": "5px",
                                 "textAlign": "center",
-                                "margin": "10px auto",  
+                                "margin": "10px auto",
                             },
                             multiple=True,
                         ),
                     ],
-                    
                 ),
             ],
             className="row",
         ),
         html.Div(id="output-data-upload"),
-
         dcc.Tabs(
             id="tabs",
             value="tab-summary",
@@ -111,7 +116,6 @@ layout = html.Div(
                     selected_style=selected_tab_style,
                 ),
                 dcc.Tab(
-
                     label="Machine Learning",
                     value="tab-machine-learning",
                     style=tab_style,
@@ -123,7 +127,6 @@ layout = html.Div(
                     style=tab_style,
                     selected_style=selected_tab_style,
                 ),
-              
             ],
             style={
                 "width": "50%",
@@ -262,10 +265,7 @@ def render_tab_content(tab):
 
                 # Wrap the card content and summary table in a dbc.Col
 
-                card = dbc.Col(
-                    [dbc.Card(card_content, className="mb-3"  )], md=4
-                )
-
+                card = dbc.Col([dbc.Card(card_content, className="mb-3")], md=4)
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
@@ -322,7 +322,9 @@ def render_tab_content(tab):
                     ),
                     html.Div(
                         [
-                            html.Label("Data Cleaning Options:" , style={"color": "white"}),
+                            html.Label(
+                                "Data Cleaning Options:", style={"color": "white"}
+                            ),
                             dcc.Input(
                                 id="column-to-clean",
                                 type="text",
