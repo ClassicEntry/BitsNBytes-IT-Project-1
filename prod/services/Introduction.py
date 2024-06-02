@@ -29,8 +29,7 @@ layout = dbc.Container(
                         ),
                         html.H3(
                             "PyExploratory is a Data Analysis App written in Python using Dash and Plotly. "
-                            "You can import data, clean data, and visualise data. "
-                            "You will also be able to create the dashboard.",
+                            "You can import data, clean data, and visualise data. ",
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
@@ -45,10 +44,21 @@ layout = dbc.Container(
                             className="mb-4 text-light text-center",
                         ),
                     ],
+                    style={"padding": "20px"},  # Add padding to the column
                 ),
             ],
+            style={
+                "margin": "0",
+                "width": "80%",
+            },  # Remove margin and set width to 100% for the row
         ),
     ],
     fluid=True,
-    style={"height": "100vh", "background-color": "#4c4d4d"},
+    style={
+        "height": "100vh",
+        "background-color": "#4c4d4d",
+        "padding": "1rem",
+        "margin": "0",
+        "position": "fixed",
+    },  # Set background color and padding
 )
