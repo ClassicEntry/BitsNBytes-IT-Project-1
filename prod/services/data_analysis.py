@@ -18,14 +18,10 @@ import numpy as np
 from dash.dependencies import Input, Output
 import plotly.express as px
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.cluster import KMeans
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import classification_report
-from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
-import datetime
+from sklearn.cluster import KMeans
 import base64
 import io
 import dash
@@ -37,7 +33,7 @@ from dash.dependencies import Input, Output, State
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
 import os
-import sqlite3
+import datetime
 
 
 # Register the page with Dash
@@ -453,17 +449,15 @@ def render_tab_content(tab):
 
         # Create options for the task and target variable dropdowns
         task_options = [
-            {"label": "Time Series Analysis", "value": "time_series"},
-            {"label": "Feature Extraction", "value": "feature_extraction"},
             {"label": "Clustering", "value": "clustering"},
             {"label": "Classification", "value": "classification"},
-            {"label": "Feature Selection", "value": "feature_selection"},
         ]
         target_variable_options = [{"label": col, "value": col} for col in df.columns]
 
         # Return a Div component with dropdowns for task and target variable selection
         return html.Div(
             [
+                html.H1("Machine Learning Task Selector"),
                 dcc.Dropdown(
                     id="task-dropdown",
                     options=task_options,
@@ -478,6 +472,17 @@ def render_tab_content(tab):
                     placeholder="Select a target variable...",
                 ),
                 html.Div(id="ml-results"),
+                dcc.Dropdown(
+                    id="x-variable",
+                    options=[{"label": i, "value": i} for i in df.columns],
+                    value=df.columns[0],
+                ),
+                dcc.Dropdown(
+                    id="y-variable",
+                    options=[{"label": i, "value": i} for i in df.columns],
+                    style={"margin-top": "10px"},
+                    value=df.columns[1],
+                ),
             ]
         )
 
@@ -611,10 +616,15 @@ def update_scatter_chart(x_axis, y_axis):
 
 @dash.callback(
     Output("ml-results", "children"),
-    [Input("task-dropdown", "value"), Input("target-variable-dropdown", "value")],
+    [
+        Input("task-dropdown", "value"),
+        Input("target-variable-dropdown", "value"),
+        Input("x-variable", "value"),
+        Input("y-variable", "value"),
+    ],
     prevent_initial_call=True,
 )
-def perform_ml_task(task, target_variable):
+def perform_ml_task(task, target_variable, x_variable, y_variable):
     """
     Perform the selected machine learning task based on the user's selection.
 
@@ -634,106 +644,255 @@ def perform_ml_task(task, target_variable):
     if target_variable not in df.columns:
         return html.Div("Target variable not found in the dataset.")
 
-    if task == "time_series":
+    if task == "clustering":
         try:
-            # Perform time series analysis
-            df[target_variable] = pd.to_datetime(df[target_variable])
-            df = df.set_index(target_variable)
-            return dcc.Graph(
-                figure=px.line(df, y=df.columns[0], title="Time Series Analysis")
-            )
-        except Exception as e:
-            return html.Div(f"Error in time series analysis: {str(e)}")
+            # Remove the label column
+            X = df.drop(columns=[target_variable])
 
-    elif task == "feature_extraction":
-        try:
-            # Perform feature extraction using PCA
-            features = df.drop(columns=[target_variable])
-            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-                return html.Div("Feature extraction requires numeric data.")
-            pca = PCA(n_components=2)
-            components = pca.fit_transform(features)
-            components_df = pd.DataFrame(data=components, columns=["PCA 1", "PCA 2"])
-            return dcc.Graph(
-                figure=px.scatter(
-                    components_df, x="PCA 1", y="PCA 2", title="PCA Feature Extraction"
-                )
-            )
-        except Exception as e:
-            return html.Div(f"Error in feature extraction: {str(e)}")
+            # Ensure all feature columns are numerical
+            for col in X.columns:
+                if X[col].dtype == "object":
+                    label_encoder = LabelEncoder()
+                    X[col] = label_encoder.fit_transform(X[col])
 
-    elif task == "clustering":
-        try:
-            # Perform clustering using KMeans
-            features = df.drop(columns=[target_variable])
-            if not all(features.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-                return html.Div("Clustering requires numeric data.")
-            kmeans = KMeans(n_clusters=3)
-            df["Cluster"] = kmeans.fit_predict(features)
-            return dcc.Graph(
-                figure=px.scatter(
-                    df,
-                    x=features.columns[0],
-                    y=features.columns[1],
-                    color="Cluster",
-                    title="KMeans Clustering",
+            # Split the data into training and testing sets
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, df[target_variable], test_size=0.25, random_state=42
+            )
+
+            # Apply K-Means clustering
+            kmeans = KMeans(n_clusters=3, random_state=42)
+            kmeans.fit(X_train)
+
+            # Predict clusters for training and testing sets
+            train_clusters = kmeans.predict(X_train)
+            test_clusters = kmeans.predict(X_test)
+
+            # Map clusters to original class names based on majority voting
+            cluster_labels = {}
+            for i in range(3):
+                mask = train_clusters == i
+                cluster_labels[i] = y_train[mask].mode()[0]
+
+            # Apply the mapping to the cluster labels
+            train_cluster_names = pd.Series(train_clusters).map(cluster_labels)
+            test_cluster_names = pd.Series(test_clusters).map(cluster_labels)
+
+            # Visualization
+            visuals = []
+            if x_variable in X.columns and y_variable in X.columns:
+                x_min, x_max = (
+                    X_train[x_variable].min() - 1,
+                    X_train[x_variable].max() + 1,
                 )
+                y_min, y_max = (
+                    X_train[y_variable].min() - 1,
+                    X_train[y_variable].max() + 1,
+                )
+
+                # Create plotly figure for training data
+                fig_train = px.scatter(
+                    x=X_train[x_variable],
+                    y=X_train[y_variable],
+                    color=train_cluster_names.astype(str),
+                    title="Training Data Clusters",
+                )
+                fig_train.update_traces(
+                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+                )
+                visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
+
+                # Create plotly figure for test data
+                fig_test = px.scatter(
+                    x=X_test[x_variable],
+                    y=X_test[y_variable],
+                    color=test_cluster_names.astype(str),
+                    title="Test Data Clusters",
+                )
+                fig_test.update_traces(
+                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+                )
+                visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
+            else:
+                visuals = [
+                    html.Div(
+                        "Selected features for visualization are not in the dataset."
+                    )
+                ]
+
+            return html.Div(
+                [
+                    html.H1("Clustering Results"),
+                    dcc.Tabs(
+                        [
+                            dcc.Tab(
+                                label="Training Set",
+                                children=visuals[
+                                    :1
+                                ],  # Only include train-plot if available
+                            ),
+                            dcc.Tab(
+                                label="Testing Set",
+                                children=visuals[
+                                    1:
+                                ],  # Only include test-plot if available
+                            ),
+                        ]
+                    ),
+                ]
             )
         except Exception as e:
             return html.Div(f"Error in clustering: {str(e)}")
 
     elif task == "classification":
         try:
-            # Perform classification using RandomForestClassifier
-            features = df.drop(columns=[target_variable])
-            target = df[target_variable]
-            if target.nunique() <= 1:
-                return html.Div(
-                    "Classification requires more than one class in the target variable."
-                )
+            # Initialize the label encoder
+            label_encoder = LabelEncoder()
+            # Encode the target variable if it's categorical
+            if df[target_variable].dtype == "object":
+                df[target_variable] = label_encoder.fit_transform(df[target_variable])
+                target_names = label_encoder.classes_
+
+            # Features and target
+            X = df[[x_variable, y_variable]]
+            y = df[target_variable]
+
+            # Ensure all feature columns are numerical
+            for col in X.columns:
+                if X[col].dtype == "object":
+                    X[col] = label_encoder.fit_transform(X[col])
+
+            # Split the data into training and testing sets
             X_train, X_test, y_train, y_test = train_test_split(
-                features, target, test_size=0.3, random_state=42
+                X, y, test_size=0.3, random_state=42
             )
-            scaler = StandardScaler().fit(X_train)
-            X_train_scaled = scaler.transform(X_train)
-            X_test_scaled = scaler.transform(X_test)
-            clf = RandomForestClassifier()
-            clf.fit(X_train_scaled, y_train)
-            y_pred = clf.predict(X_test_scaled)
-            report = classification_report(y_test, y_pred, output_dict=True)
-            report_df = pd.DataFrame(report).transpose()
-            return dash_table.DataTable(
-                data=report_df.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in report_df.columns],
-                style_cell={"textAlign": "left"},
-                style_header={"backgroundColor": "white", "fontWeight": "bold"},
-                fill_width=False,
+
+            # Create an instance of the SVC class with a linear kernel
+            svm_model = SVC(kernel="linear", C=1.0)
+
+            # Fit the model to the training data
+            svm_model.fit(X_train, y_train)
+
+            # Predictions
+            train_predictions = svm_model.predict(X_train)
+            test_predictions = svm_model.predict(X_test)
+
+            # Reverse the label encoding for the classification report
+            y_train_names = label_encoder.inverse_transform(y_train)
+            y_test_names = label_encoder.inverse_transform(y_test)
+            train_predictions_names = label_encoder.inverse_transform(train_predictions)
+            test_predictions_names = label_encoder.inverse_transform(test_predictions)
+
+            # Classification reports
+            train_report = classification_report(
+                y_train_names,
+                train_predictions_names,
+                target_names=target_names,
+                zero_division=0,
+                output_dict=True,
+            )
+            test_report = classification_report(
+                y_test_names,
+                test_predictions_names,
+                target_names=target_names,
+                zero_division=0,
+                output_dict=True,
+            )
+
+            # Visualization
+            visuals = []
+            if x_variable in X.columns and y_variable in X.columns:
+                x_min, x_max = (
+                    X_train[x_variable].min() - 1,
+                    X_train[x_variable].max() + 1,
+                )
+                y_min, y_max = (
+                    X_train[y_variable].min() - 1,
+                    X_train[y_variable].max() + 1,
+                )
+                xx, yy = np.meshgrid(
+                    np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01)
+                )
+                Z = svm_model.predict(np.c_[xx.ravel(), yy.ravel()])
+                Z = Z.reshape(xx.shape)
+
+                # Create plotly figure for training data
+                fig_train = px.scatter(
+                    x=X_train[x_variable],
+                    y=X_train[y_variable],
+                    color=pd.Series(y_train_names).astype(str),
+                    title="Training Data",
+                )
+                fig_train.update_traces(
+                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+                )
+                fig_train.add_contour(
+                    x=np.arange(x_min, x_max, 0.01),
+                    y=np.arange(y_min, y_max, 0.01),
+                    z=Z,
+                    colorscale="Viridis",
+                    opacity=0.3,
+                )
+                visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
+
+                # Create plotly figure for test data
+                fig_test = px.scatter(
+                    x=X_test[x_variable],
+                    y=X_test[y_variable],
+                    color=pd.Series(y_test_names).astype(str),
+                    title="Test Data",
+                )
+                fig_test.update_traces(
+                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+                )
+                fig_test.add_contour(
+                    x=np.arange(x_min, x_max, 0.01),
+                    y=np.arange(y_min, y_max, 0.01),
+                    z=Z,
+                    colorscale="Viridis",
+                    opacity=0.3,
+                )
+                visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
+            else:
+                visuals = [
+                    html.Div(
+                        "Selected features for visualization are not in the dataset."
+                    )
+                ]
+
+            return html.Div(
+                [
+                    html.H1("SVM Classification Report"),
+                    dcc.Tabs(
+                        [
+                            dcc.Tab(
+                                label="Training Set",
+                                children=[
+                                    html.Pre(
+                                        id="train-report",
+                                        children=json.dumps(train_report, indent=2),
+                                    ),
+                                    *visuals[
+                                        :1
+                                    ],  # Only include train-plot if available
+                                ],
+                            ),
+                            dcc.Tab(
+                                label="Testing Set",
+                                children=[
+                                    html.Pre(
+                                        id="test-report",
+                                        children=json.dumps(test_report, indent=2),
+                                    ),
+                                    *visuals[1:],  # Only include test-plot if available
+                                ],
+                            ),
+                        ]
+                    ),
+                ]
             )
         except Exception as e:
             return html.Div(f"Error in classification: {str(e)}")
-
-    elif task == "feature_selection":
-        try:
-            # Perform feature selection using SelectKBest
-            features = df.drop(columns=[target_variable])
-            target = df[target_variable]
-            if not np.issubdtype(target.dtype, np.number):
-                return html.Div("Feature selection requires a numeric target variable.")
-            selector = SelectKBest(score_func=chi2, k=2)
-            selector.fit(features, target)
-            scores = pd.DataFrame(
-                selector.scores_, index=features.columns, columns=["Score"]
-            )
-            scores = scores.sort_values(by="Score", ascending=False).reset_index()
-            return dash_table.DataTable(
-                data=scores.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in scores.columns],
-                style_cell={"textAlign": "left"},
-                style_header={"backgroundColor": "white", "fontWeight": "bold"},
-                fill_width=False,
-            )
-        except Exception as e:
-            return html.Div(f"Error in feature selection: {str(e)}")
 
     return html.Div("Select a valid task.")
 
@@ -763,12 +922,6 @@ def parse_contents(contents, filename, date):
             json_str = decoded.decode("utf-8")
             json_data = json.loads(json_str)
             df = pd.json_normalize(json_data)
-        elif extension == ".sqlite":
-            conn = sqlite3.connect(":memory:")
-            with open(os.path.join("uploads", filename), "wb") as f:
-                f.write(decoded)
-            conn = sqlite3.connect(os.path.join("uploads", filename))
-            df = pd.read_sql_query("SELECT * FROM *", conn)  # Replace  with table name
         else:
             raise ValueError("Unsupported file extension")
     except FileNotFoundError as e:
@@ -780,20 +933,7 @@ def parse_contents(contents, filename, date):
     return html.Div(
         [
             html.H5("Successfully imported " + filename),
-            # html.H6(datetime.datetime.fromtimestamp(date)),
-            # dash_table.DataTable(
-            #     data=df.to_dict("records"),
-            #     columns=[{"name": i, "id": i} for i in df.columns],
-            #     page_action="native",
-            #     page_size=50,
-            #     style_table={
-            #         "overflowX": "scroll",
-            #     },
-            #     style_cell={
-            #         "whiteSpace": "normal",
-            #         "height": "auto",
-            #     },
-            # ),
+            html.H6("Last Modified: " + str(datetime.datetime.fromtimestamp(date))),
         ]
     )
 
