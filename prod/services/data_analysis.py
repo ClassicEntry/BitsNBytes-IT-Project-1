@@ -21,6 +21,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
+import os
+
+# Set environment variable to avoid memory leak issue with KMeans
+os.environ["OMP_NUM_THREADS"] = "1"
 from sklearn.cluster import KMeans
 import base64
 import io
@@ -32,9 +36,8 @@ from dash import html, dcc, dash_table
 from dash.dependencies import Input, Output, State
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
-import os
-import datetime
 
+import datetime
 
 # Register the page with Dash
 dash.register_page(
@@ -661,7 +664,7 @@ def perform_ml_task(task, target_variable, x_variable, y_variable):
             )
 
             # Apply K-Means clustering
-            kmeans = KMeans(n_clusters=3, random_state=42)
+            kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
             kmeans.fit(X_train)
 
             # Predict clusters for training and testing sets

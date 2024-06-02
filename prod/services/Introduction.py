@@ -33,9 +33,9 @@ layout = dbc.Container(
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
-                            "To get started, click on the Import Data tab in the sidebar and click or drag to import a CSV, Excel or JSON file. "
-                            + "Once you have imported the data, you can click on Data Analysis Tab to view your data.",
-                            "You can perform data cleaning operations in the Import Data tab. ",
+                            "To get started, click on the Data Analysis Tab in the sidebar and click or drag to import a CSV, Excel or JSON file. "
+                            + "Once you have imported the data, you can view your data.",
+                            "You can perform data cleaning operations in the Table tab. ",
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
