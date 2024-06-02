@@ -455,7 +455,13 @@ def render_tab_content(tab):
             {"label": "Clustering", "value": "clustering"},
             {"label": "Classification", "value": "classification"},
         ]
-        target_variable_options = [{"label": col, "value": col} for col in df.columns]
+        # Get only categorical columns
+        categorical_columns = df.select_dtypes(include=["object", "category"]).columns
+
+        # Create options for target variable dropdown
+        target_variable_options = [
+            {"label": col, "value": col} for col in categorical_columns
+        ]
 
         # Return a Div component with dropdowns for task and target variable selection
         return html.Div(
@@ -478,13 +484,15 @@ def render_tab_content(tab):
                 dcc.Dropdown(
                     id="x-variable",
                     options=[{"label": i, "value": i} for i in df.columns],
-                    value=df.columns[0],
+                    value="",
+                    placeholder="Select x-axis...",
                 ),
                 dcc.Dropdown(
                     id="y-variable",
                     options=[{"label": i, "value": i} for i in df.columns],
                     style={"margin-top": "10px"},
-                    value=df.columns[1],
+                    value="",
+                    placeholder="Select y-axis...",
                 ),
             ]
         )
