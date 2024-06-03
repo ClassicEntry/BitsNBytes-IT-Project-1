@@ -25,6 +25,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.cluster import KMeans
 from sklearn.metrics import classification_report
@@ -73,20 +74,9 @@ selected_tab_style = {
 # Load the dataset
 df = pd.read_csv("local_data.csv")
 
-# Create options for the task and target variable dropdowns
-task_options = [
-    {"label": "Clustering", "value": "clustering"},
-    {"label": "Classification", "value": "classification"},
-]
-
-# Get only categorical columns for classification target variable
-categorical_columns = df.select_dtypes(include=["object", "category"]).columns
-
 # Get only numerical columns for clustering features
 numerical_columns = df.select_dtypes(include=[float, int]).columns
 
-# Create options for target variable dropdown based on the selected task
-target_variable_options = [{"label": col, "value": col} for col in categorical_columns]
 
 # Define the layout of the page
 layout = html.Div(
@@ -558,33 +548,6 @@ def render_tab_content(tab):
             [
                 html.H3("Machine Learning Task Selector", style={"color": "white"}),
                 dcc.Dropdown(
-                    id="task-dropdown",
-                    options=task_options,
-                    value="",
-                    placeholder="Select a task...",
-                    style={
-                        "color": "black",
-                        "borderRadius": "10px",
-                        "margin": "1px 10px 10px 0px",
-                        "width": "95.5%",
-                        "textAlign": "center",
-                    },
-                ),
-                dcc.Dropdown(
-                    id="target-variable-dropdown",
-                    options=target_variable_options,
-                    value="",
-                    style={
-                        "color": "black",
-                        "borderRadius": "10px",
-                        "margin": "1px 10px 10px 0px",
-                        "width": "95.5%",
-                        "textAlign": "center",
-                    },
-                    placeholder="Select a target variable...",
-                ),
-                html.Div(id="ml-results"),
-                dcc.Dropdown(
                     id="x-variable",
                     options=[{"label": col, "value": col} for col in numerical_columns],
                     value="",
@@ -610,12 +573,7 @@ def render_tab_content(tab):
                     value="",
                     placeholder="Select y-axis...",
                 ),
-                html.Div(
-                    id="ml-results",
-                    style={
-                        "height": "60vh",
-                    },
-                ),
+                html.Div(id="ml-results", style={"height": "60vh"}),
             ]
         )
 
@@ -777,171 +735,117 @@ def update_scatter_chart(x_axis, y_axis):
     return dcc.Graph(figure=fig)
 
 
-# Define the callback for updating the target variable options based on the selected task
-@dash.callback(
-    Output("target-variable-dropdown", "options"),
-    [Input("task-dropdown", "value")],
-)
-def update_target_variable_options(task):
-    if task == "clustering":
-        options = [{"label": col, "value": col} for col in numerical_columns]
-    elif task == "classification":
-        options = [{"label": col, "value": col} for col in categorical_columns]
-    else:
-        options = []
-    return options
-
-
 # Define the callback for performing the machine learning task
 @dash.callback(
     Output("ml-results", "children"),
     [
-        Input("task-dropdown", "value"),
-        Input("target-variable-dropdown", "value"),
         Input("x-variable", "value"),
         Input("y-variable", "value"),
     ],
     prevent_initial_call=True,
 )
-def perform_ml_task(task, target_variable, x_variable=None, y_variable=None):
+def perform_clustering(x_variable, y_variable):
     """
-    Perform the selected machine learning task based on the user's selection.
+    Perform KMeans clustering and visualize the results.
 
     Parameters:
-    - task (str): The selected machine learning task.
-    - target_variable (str): The selected target variable.
+    - x_variable (str): The selected x-axis variable.
+    - y_variable (str): The selected y-axis variable.
 
     Returns:
-    - html.Div: The results of the machine learning task.
+    - html.Div: The results of the clustering task.
     """
     try:
         df = pd.read_csv("local_data.csv")
     except FileNotFoundError:
         return html.Div("Data file not found. Please upload data in the drop box.")
 
-    if target_variable not in df.columns:
-        return html.Div("Select a valid Target variable.")
+    if x_variable not in df.columns or y_variable not in df.columns:
+        return html.Div("Select valid x and y variables.")
 
-    if task == "clustering":
-        try:
-            # Remove the label column
-            X = df.drop(columns=[target_variable])
-            y = df[target_variable]
+    try:
+        # Select the features for clustering
+        X = df[[x_variable, y_variable]].dropna()
 
-            # Ensure all feature columns are numerical
-            X = X.select_dtypes(include=[float, int])
+        # Standardize the features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
 
-            # Split the data into training and testing sets without stratification
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.25, random_state=42
+        # Apply KMeans clustering
+        kmeans = KMeans(n_clusters=3, random_state=42)
+        kmeans.fit(X_scaled)
+        labels = kmeans.labels_
+        centroids = kmeans.cluster_centers_
+
+        # Create a mesh grid for decision boundaries
+        h = 0.02  # Step size of the mesh
+        x_min, x_max = X_scaled[:, 0].min() - 1, X_scaled[:, 0].max() + 1
+        y_min, y_max = X_scaled[:, 1].min() - 1, X_scaled[:, 1].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+        # Obtain labels for each point in mesh
+        Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
+
+        # Visualization
+        fig = go.Figure()
+
+        # Add decision boundary
+        fig.add_trace(
+            go.Contour(
+                x=xx[0],
+                y=yy[:, 0],
+                z=Z,
+                showscale=False,
+                opacity=0.4,
+                colorscale="Viridis",
+                hoverinfo="skip",  # Disable hover info for the contour
             )
+        )
 
-            # Apply K-Means clustering
-            kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-            kmeans.fit(X_train)
-
-            # Predict clusters for training and testing sets
-            train_clusters = kmeans.predict(X_train)
-            test_clusters = kmeans.predict(X_test)
-
-            # Create a mesh grid for decision boundaries
-            h = 0.02  # Step size of the mesh
-            x_min, x_max = X_train[x_variable].min() - 1, X_train[x_variable].max() + 1
-            y_min, y_max = X_train[y_variable].min() - 1, X_train[y_variable].max() + 1
-            xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-
-            # Obtain labels for each point in mesh
-            Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
-            Z = Z.reshape(xx.shape)
-
-            # Visualization
-            visuals = []
-            if x_variable in X.columns and y_variable in X.columns:
-                # Create plotly figure for training data
-                fig_train = px.scatter(
-                    x=X_train[x_variable],
-                    y=X_train[y_variable],
-                    color=train_clusters.astype(str),
-                    title="Training Data Clusters",
-                )
-                fig_train.update_traces(
-                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
-                )
-
-                # Add decision boundary to the plot
-                fig_train.add_trace(
-                    go.Contour(
-                        x=xx[0],
-                        y=yy[:, 0],
-                        z=Z,
-                        showscale=False,
-                        opacity=0.4,
-                        colorscale="Viridis",
-                    )
-                )
-
-                visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
-
-                # Create plotly figure for test data
-                fig_test = px.scatter(
-                    x=X_test[x_variable],
-                    y=X_test[y_variable],
-                    color=test_clusters.astype(str),
-                    title="Test Data Clusters",
-                )
-                fig_test.update_traces(
-                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
-                )
-
-                # Add decision boundary to the plot
-                fig_test.add_trace(
-                    go.Contour(
-                        x=xx[0],
-                        y=yy[:, 0],
-                        z=Z,
-                        showscale=False,
-                        opacity=0.4,
-                        colorscale="Viridis",
-                    )
-                )
-
-                visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
-            else:
-                visuals = [
-                    html.Div(
-                        "Selected features for visualization are not in the dataset."
-                    )
-                ]
-
-            return html.Div(
-                [
-                    html.H1("Clustering Results"),
-                    dcc.Tabs(
-                        [
-                            dcc.Tab(
-                                label="Training Set",
-                                children=visuals[
-                                    :1
-                                ],  # Only include train-plot if available
-                            ),
-                            dcc.Tab(
-                                label="Testing Set",
-                                children=visuals[
-                                    1:
-                                ],  # Only include test-plot if available
-                            ),
-                        ]
-                    ),
-                ]
+        # Add scatter plot for the data points
+        fig.add_trace(
+            go.Scatter(
+                x=X_scaled[:, 0],
+                y=X_scaled[:, 1],
+                mode="markers",
+                marker=dict(
+                    color=labels,
+                    colorscale="Viridis",
+                    line=dict(width=0.5, color="DarkSlateGrey"),
+                    showscale=True,
+                ),
+                text=[f"Cluster {label}" for label in labels],
             )
-        except Exception as e:
-            return html.Div(f"Error in clustering: {str(e)}")
+        )
 
-    elif task == "classification":
-        # Placeholder for classification logic
-        return html.Div("Classification task is not yet implemented.")
-    else:
-        return html.Div("Select a valid task.")
+        # Add centroids to the plot
+        fig.add_trace(
+            go.Scatter(
+                x=centroids[:, 0],
+                y=centroids[:, 1],
+                mode="markers",
+                marker=dict(
+                    color="red",
+                    symbol="x",
+                    size=12,
+                    line=dict(width=2, color="DarkSlateGrey"),
+                ),
+                text=["Centroid"] * len(centroids),
+            )
+        )
+
+        fig.update_layout(
+            title="KMeans Clustering",
+            xaxis_title=x_variable,
+            yaxis_title=y_variable,
+            margin=dict(l=0, r=0, t=40, b=0),
+        )
+
+        return html.Div([dcc.Graph(figure=fig)])
+
+    except Exception as e:
+        return html.Div(f"Error in clustering: {str(e)}")
 
     # elif task == "classification":
     #     try:
