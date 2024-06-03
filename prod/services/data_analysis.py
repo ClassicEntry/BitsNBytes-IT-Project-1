@@ -42,16 +42,27 @@ dash.register_page(
     order=3,
 )
 
+# New clours for GUI theme
+light_green = "#56D300"
+dark_green = "#00a417"
+
+new_green= "#0f4d25"
+Grey = "#3f3f3f"
+Light_blue = "#007BFF"
+Dark_blue = "#1d06ca"
+white = "#f3f3f3"
+black = "#000000"
+
 # Define the styles
 tab_style = {
-    "backgroundColor": "#007BFF",
+    "backgroundColor": dark_green,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
 }
 
 selected_tab_style = {
-    "backgroundColor": "#003366",
+    "backgroundColor": dark_green,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
@@ -130,7 +141,7 @@ layout = html.Div(
         ),
         html.Div(id="tabs-content", style={"padding": "20px"}),
     ],
-    style={"backgroundColor": "#4c4d4d"},
+    style={"backgroundColor": Grey},
 )
 
 
@@ -188,12 +199,12 @@ def render_tab_content(tab):
                     },  # Wrap the cell content and adjust the cell height
                     style_cell={
                         "textAlign": "left",
-                        "backgroundColor": "#1e2130",  # Set the cell background color to dark
-                        "color": "white",  # Set the cell text color to white
-                        "border": "1px solid white",  # Add a border to the cells
+                        "backgroundColor": white ,  # Set the cell background color to dark
+                        "color": "black",  # Set the cell text color to white
+                        "border": "1px solid black",  # Add a border to the cells
                     },
                     style_header={
-                        "backgroundColor": "#007BFF",  # Set the header background color to blue
+                        "backgroundColor": dark_green,  # Set the header background color to blue
                         "fontWeight": "bold",  # Make the header text bold
                         "color": "white",  # Set the header text color to white
                     },
@@ -217,7 +228,7 @@ def render_tab_content(tab):
                                         df,
                                         x=col,
                                         title=f"Distribution of {col}",
-                                        template="plotly_dark",
+                                        template="plotly_white",
                                     )
                                 ),
                                 summary_table,  # Add the summary table here
@@ -225,8 +236,8 @@ def render_tab_content(tab):
                         ),
                         className="mb-3",  # add some bottom margin for each card
                         style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
+                            "backgroundColor": white,
+                            "color": "black",
                         },  # Set the background color to dark and the text color to white
                     )
                 else:
@@ -244,7 +255,10 @@ def render_tab_content(tab):
                                         x=col,
                                         y="count",
                                         title=f"Distribution of {col}",
-                                        template="plotly_dark",
+                                        template="plotly_white",
+                                        #bar grpah colour
+                                        color_discrete_sequence=["#007BFF"],
+                                        
                                     )
                                 ),
                                 summary_table,  # Add the summary table here
@@ -252,8 +266,8 @@ def render_tab_content(tab):
                         ),
                         className="mb-3",  # add some bottom margin for each card
                         style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
+                            "backgroundColor": white,
+                            "color": "black",
                         },  # Set the background color to dark and the text color to white
                     )
 
@@ -294,12 +308,13 @@ def render_tab_content(tab):
                             "whiteSpace": "normal",
                             "height": "auto",
                             "textAlign": "left",
-                            "backgroundColor": "#1e2130",  # Set the cell background color to dark
-                            "color": "white",  # Set the cell text color to white
-                            "border": "1px solid white",  # Add a border to the cells
+                            "backgroundColor": white,  # Set the cell background color to dark
+                            "color": "black",  # Set the cell text color to white
+                            "border": "1px solid black",  # Add a border to the cells
                         },
+                        
                         style_header={
-                            "backgroundColor": "#007BFF",  # Set the header background color to blue
+                            "backgroundColor": dark_green,  # Set the header background color to blue
                             "fontWeight": "bold",  # Make the header text bold
                             "color": "white",  # Set the header text color to white
                         },
@@ -338,7 +353,7 @@ def render_tab_content(tab):
                                 placeholder="Column to clean...",
                                 style={
                                     "backgroundColor": "#007BFF",
-                                    "color": "white",
+                                    "color": "black",
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "10px 10px 0px 0px",
