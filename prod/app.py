@@ -58,25 +58,16 @@ CONTENT_STYLE = {
 }
 
 # Create the sidebar navigation hierarchy
-sidebar = dbc.Nav(
+sidebar = html.Div(
     [
-        dbc.NavLink(
-            [
-                html.Div(
-                    page["name"],
-                    style={"color": "#ffffff"},
-                ),
-            ],
-            href=page["path"],
-            active="exact",
-            style={"background-color": "#00a417" if page["path"] == "selected_page_path" else None},
-        )
-        for page in dash.page_registry.values()
-    ],
-    vertical=True,
-    pills=True,
+        dcc.Location(id="url", refresh=False),
+        dbc.Nav(
+            id="sidebar-nav",
+            vertical=True,
+            pills=True,
+        ),
+    ]
 )
-
 
 # Create the content area
 content = html.Div(id="page-content", children={}, style=CONTENT_STYLE)
@@ -140,6 +131,29 @@ app.layout = dbc.Container(
     fluid=True,
     style={"position": "relative"},
 )
+
+
+@app.callback(Output("sidebar-nav", "children"), [Input("url", "pathname")])
+def update_sidebar(pathname):
+    return [
+        dbc.NavLink(
+            [
+                html.Div(
+                    page["name"],
+                    style={"color": "#ffffff"},
+                ),
+            ],
+            href=page["path"],
+            active="exact",
+            style={
+                "background-color": (
+                    "#00a417" if page["path"] == pathname else "#282829"
+                ),
+                "margin": "10px",
+            },
+        )
+        for page in dash.page_registry.values()
+    ]
 
 
 @dash.callback(

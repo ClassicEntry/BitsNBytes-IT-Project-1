@@ -46,7 +46,7 @@ dash.register_page(
 light_green = "#56D300"
 dark_green = "#00a417"
 
-new_green= "#0f4d25"
+new_green = "#0f4d25"
 Grey = "#3f3f3f"
 Light_blue = "#007BFF"
 Dark_blue = "#1d06ca"
@@ -199,7 +199,7 @@ def render_tab_content(tab):
                     },  # Wrap the cell content and adjust the cell height
                     style_cell={
                         "textAlign": "left",
-                        "backgroundColor": white ,  # Set the cell background color to dark
+                        "backgroundColor": white,  # Set the cell background color to dark
                         "color": "black",  # Set the cell text color to white
                         "border": "1px solid black",  # Add a border to the cells
                     },
@@ -256,9 +256,8 @@ def render_tab_content(tab):
                                         y="count",
                                         title=f"Distribution of {col}",
                                         template="plotly_white",
-                                        #bar grpah colour
+                                        # bar grpah colour
                                         color_discrete_sequence=["#007BFF"],
-                                        
                                     )
                                 ),
                                 summary_table,  # Add the summary table here
@@ -312,7 +311,6 @@ def render_tab_content(tab):
                             "color": "black",  # Set the cell text color to white
                             "border": "1px solid black",  # Add a border to the cells
                         },
-                        
                         style_header={
                             "backgroundColor": dark_green,  # Set the header background color to blue
                             "fontWeight": "bold",  # Make the header text bold
@@ -344,7 +342,8 @@ def render_tab_content(tab):
                     html.Div(
                         [
                             html.Label(
-                                "Data Cleaning Options:", style={"color": "white", "padding": "5px"}
+                                "Data Cleaning Options:",
+                                style={"color": "white", "padding": "5px"},
                             ),
                             dcc.Input(
                                 id="column-to-clean",
