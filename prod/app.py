@@ -19,7 +19,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
 # Set the default template for Plotly Express
-px.defaults.template = "plotly_dark"
+px.defaults.template = "plotly_light"
 
 # Define external CSS stylesheets
 external_css = [dbc.themes.BOOTSTRAP]

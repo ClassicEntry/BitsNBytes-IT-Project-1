@@ -47,17 +47,24 @@ dash.register_page(
     name="Data Analysis",
     order=3,
 )
+# New clours for GUI theme
+light_green = "#56D300"
+dark_green = "#378700"
+Grey = "#636A5E"
+Light_blue = "#007BFF"
+Dark_blue = "#003366"
+
 
 # Define the styles
 tab_style = {
-    "backgroundColor": "#007BFF",
+    "backgroundColor": light_green ,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
 }
 
 selected_tab_style = {
-    "backgroundColor": "#003366",
+    "backgroundColor": dark_green,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
@@ -66,7 +73,7 @@ selected_tab_style = {
 # Define the layout of the page
 layout = html.Div(
     [
-        html.H1("Data Analysis", className="text-light text-center fw-bold fs-1"),
+        html.H1("Data Analysis", className="text-dark text-center fw-bold fs-1"),
         html.Div(
             [
                 html.Div(
@@ -77,9 +84,9 @@ layout = html.Div(
                             children=html.Div(
                                 [
                                     "Drag and Drop or ",
-                                    html.A("Select Files", style={"color": "white"}),
+                                    html.A("Select Files", style={"color": "black"}),
                                 ],
-                                style={"color": "white"},
+                                style={"color": "black"},
                             ),
                             style={
                                 "width": "50%",
@@ -136,7 +143,7 @@ layout = html.Div(
         ),
         html.Div(id="tabs-content", style={"padding": "20px"}),
     ],
-    style={"backgroundColor": "#4c4d4d"},
+    style={"backgroundColor": "#f3f3f3"},
 )
 
 
@@ -194,14 +201,14 @@ def render_tab_content(tab):
                     },  # Wrap the cell content and adjust the cell height
                     style_cell={
                         "textAlign": "left",
-                        "backgroundColor": "#1e2130",  # Set the cell background color to dark
-                        "color": "white",  # Set the cell text color to white
-                        "border": "1px solid white",  # Add a border to the cells
+                        "backgroundColor": "#f3f3f3",  
+                        "color": "black",  # Set the cell text color to
+                        "border": "1px solid black",  # Add a border to the cells
                     },
                     style_header={
-                        "backgroundColor": "#007BFF",  # Set the header background color to blue
+                        "backgroundColor": light_green,  # Set the
                         "fontWeight": "bold",  # Make the header text bold
-                        "color": "white",  # Set the header text color to white
+                        "color": "white",  # Se
                     },
                     style_table={
                         "overflowX": "auto",  # Add a horizontal scrollbar if the content overflows
@@ -231,8 +238,8 @@ def render_tab_content(tab):
                         ),
                         className="mb-3",  # add some bottom margin for each card
                         style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
+                            "backgroundColor": "#f3f3f3",
+                            "color": "black",
                         },  # Set the background color to dark and the text color to white
                     )
                 else:
@@ -258,14 +265,14 @@ def render_tab_content(tab):
                         ),
                         className="mb-3",  # add some bottom margin for each card
                         style={
-                            "backgroundColor": "#343A40",
-                            "color": "white",
+                            "backgroundColor": "#f3f3f3",
+                            "color": "black",
                         },  # Set the background color to dark and the text color to white
                     )
 
                 # Wrap the card content and summary table in a dbc.Col
 
-                card = dbc.Col([dbc.Card(card_content, className="mb-3")], md=4)
+                card = dbc.Col([dbc.Card(card_content, className="mb-3")])
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
@@ -300,15 +307,15 @@ def render_tab_content(tab):
                             "whiteSpace": "normal",
                             "height": "auto",
                             "textAlign": "left",
-                            "backgroundColor": "#1e2130",  # Set the cell background color to dark
-                            "color": "white",  # Set the cell text color to white
-                            "border": "1px solid white",  # Add a border to the cells
+                            "backgroundColor": "#f3f3f3",  # Set the cell background color to dark
+                            "color": "black",  # Set the cell text color to white
+                            "border": "1px solid black",  # Add a border to the cells
                         },
-                        style_header={
-                            "backgroundColor": "#007BFF",  # Set the header background color to blue
-                            "fontWeight": "bold",  # Make the header text bold
-                            "color": "white",  # Set the header text color to white
-                        },
+                         style_header={
+                        "backgroundColor": light_green,  # Set the
+                        "fontWeight": "bold",  # Make the header text bold
+                        "color": "white",  # Se
+                    },
                         editable=True,
                     ),
                     html.Button(
@@ -317,7 +324,7 @@ def render_tab_content(tab):
                         style={
                             "margin": "10px",
                             "color": "white",
-                            "background-color": "#007BFF",
+                            "background-color": light_green,
                         },
                     ),
                     html.Div(
