@@ -67,12 +67,12 @@ selected_tab_style = {
     "borderRadius": "15px",
     "margin": "10px",
 }
-dcc.Location(id="refresh", refresh=True),
 
 # Define the layout of the page
 layout = html.Div(
     [
         html.H1("Data Analysis", className="text-light text-center fw-bold fs-1"),
+        dcc.Location(id="refresh", refresh=True),
         html.Div(
             [
                 html.Div(
@@ -341,7 +341,6 @@ def render_tab_content(tab):
                             ),
                         ]
                     ),
-                    dcc.Location(id="refresh", refresh=True),
                     html.Div(
                         [
                             html.Label(
@@ -1010,9 +1009,9 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
 @dash.callback(
     Output("refresh", "pathname"),
-    [Input("upload-data", "contents"), Input("clean-data-btn", "n_clicks")],
+    [Input("upload-data", "contents")],
 )
-def refresh_page(contents, n_clicks):
+def refresh_page(contents):
     """
     Refreshes the page after a delay of 2 seconds.
 
@@ -1023,7 +1022,7 @@ def refresh_page(contents, n_clicks):
         The path to the refreshed page.
 
     """
-    if (contents is not None) or (n_clicks != 0):
+    if contents is not None:
         time.sleep(2)
         return "./data_analysis"
 
