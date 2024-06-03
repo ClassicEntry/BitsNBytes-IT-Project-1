@@ -49,7 +49,7 @@ dash.register_page(
 )
 # New clours for GUI theme
 light_green = "#56D300"
-dark_green = "#378700"
+dark_green = "#003b00"
 Grey = "#636A5E"
 Light_blue = "#007BFF"
 Dark_blue = "#003366"
@@ -57,14 +57,14 @@ Dark_blue = "#003366"
 
 # Define the styles
 tab_style = {
-    "backgroundColor": light_green ,
+    "backgroundColor": dark_green ,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
 }
 
 selected_tab_style = {
-    "backgroundColor": dark_green,
+    "backgroundColor": light_green,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
@@ -272,7 +272,7 @@ def render_tab_content(tab):
 
                 # Wrap the card content and summary table in a dbc.Col
 
-                card = dbc.Col([dbc.Card(card_content, className="mb-3")])
+                card = dbc.Col([dbc.Card(card_content, className="mb-3")] , mb=4)
 
                 cards.append(card)
             # Wrap the cards in a dbc.Row
@@ -336,6 +336,8 @@ def render_tab_content(tab):
                                 id="column-to-clean",
                                 type="text",
                                 placeholder="Column to clean...",
+                                style={"width": "100%", "margin-top": "10px"},
+
                             ),
                             dcc.Dropdown(
                                 id="cleaning-operation",
@@ -387,27 +389,31 @@ def render_tab_content(tab):
                                     {"label": "Sort Descending", "value": "sort_desc"},
                                 ],
                                 placeholder="Select Cleaning Operation...",
-                                style={"margin-top": "10px"},
+                                style={"width": "100%", "margin-top": "10px"},
+
                             ),
                             dcc.Input(
                                 id="fill-value",
                                 type="text",
                                 placeholder="Value to apply to cleaning operation/fill NA with...",
-                                style={"margin-top": "10px"},
+                                style={"width": "100%", "margin-top": "10px"},
+
                             ),
                             dcc.Input(
                                 id="new-column-name",
                                 type="text",
                                 placeholder="New column name...",
-                                style={"margin-top": "10px"},
+                                style={"width": "100%", "margin-top": "10px"},
+
                             ),
                             html.Button(
                                 "Apply Cleaning",
                                 id="clean-data-btn",
                                 n_clicks=0,
-                                style={"margin-top": "10px"},
+                                style={"width": "100%", "margin-top": "10px"},
+
                             ),
-                            html.Div(id="cleaning-result"),
+                            html.Div(id="cleaning-result", style={"width": "100%"}),
                         ],
                         className="row",
                     ),

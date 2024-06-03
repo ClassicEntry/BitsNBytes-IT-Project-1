@@ -62,10 +62,13 @@ sidebar = dbc.Nav(
             [
                 html.Div(
                     page["name"],
+                    style={"color": "#56D300"},
+                    
                 ),
             ],
             href=page["path"],
             active="exact",
+            style={"background-color": "#56D300" if page["name"] == "selected_page" else None},
         )
         for page in dash.page_registry.values()
     ],
