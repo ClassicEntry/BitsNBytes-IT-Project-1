@@ -64,10 +64,12 @@ sidebar = dbc.Nav(
             [
                 html.Div(
                     page["name"],
+                    style={"color": "#ffffff"},
                 ),
             ],
             href=page["path"],
             active="exact",
+            style={"background-color": "#00a417" if page["path"] == "selected_page_path" else None},
         )
         for page in dash.page_registry.values()
     ],
@@ -104,7 +106,7 @@ app.layout = dbc.Container(
                             id="btn-download",
                             n_clicks=0,
                             style={
-                                "backgroundColor": "#007BFF",
+                                "backgroundColor": "#00a417",
                                 "color": "white",
                                 "borderRadius": "10px",
                                 "padding": "5px",
