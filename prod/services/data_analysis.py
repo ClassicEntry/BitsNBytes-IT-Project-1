@@ -24,10 +24,14 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.cluster import KMeans
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 from sklearn.preprocessing import MinMaxScaler
 from scipy import stats
 
@@ -597,7 +601,7 @@ def render_tab_content(tab):
                     value="",
                     placeholder="Select y-axis...",
                 ),
-                html.Div(id="ml-results", style={"height": "60vh"}),
+                html.Div(id="ml-results", style={"height": "140vh"}),
             ]
         )
 
@@ -940,6 +944,27 @@ def perform_machine_learning(task, target_variable, x_variable, y_variable):
             )
             cm = confusion_matrix(y_test, y_pred_test)
 
+            # Create confusion matrix display
+            cmd = ConfusionMatrixDisplay(
+                confusion_matrix=cm,
+                display_labels=(
+                    label_encoder.classes_ if y.dtype == "object" else np.unique(y)
+                ),
+            )
+            cmd.plot(cmap="viridis")
+
+            # Convert matplotlib figure to Plotly figure
+            fig_cm = go.Figure()
+            fig_cm.add_trace(
+                go.Heatmap(
+                    z=cm,
+                    x=label_encoder.classes_ if y.dtype == "object" else np.unique(y),
+                    y=label_encoder.classes_ if y.dtype == "object" else np.unique(y),
+                    colorscale="Viridis",
+                    showscale=True,
+                )
+            )
+
             # Visualization for training data
             fig_train = px.scatter(
                 x=X_train[:, 0],
@@ -967,27 +992,20 @@ def perform_machine_learning(task, target_variable, x_variable, y_variable):
             # Return the results including the classification report and confusion matrix
             return html.Div(
                 [
-                    html.H4("Classification Report"),
+                    html.H4("Classification Report", style={"color": "white"}),
                     html.Pre(report),
-                    html.H4("Confusion Matrix"),
+                    html.H4(
+                        "Confusion Matrix",
+                        style={
+                            "margin": "1px 10px 10px 0px",
+                            "textAlign": "center",
+                        },
+                    ),
                     dcc.Graph(
-                        figure=go.Figure(
-                            data=go.Heatmap(
-                                z=cm,
-                                x=(
-                                    label_encoder.classes_
-                                    if y.dtype == "object"
-                                    else np.unique(y)
-                                ),
-                                y=(
-                                    label_encoder.classes_
-                                    if y.dtype == "object"
-                                    else np.unique(y)
-                                ),
-                                colorscale="Viridis",
-                                showscale=True,
-                            )
-                        )
+                        figure=fig_cm,
+                        style={
+                            "margin": "1px 10px 10px 0px",
+                        },
                     ),
                     dcc.Tabs(
                         [
