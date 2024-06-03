@@ -3,9 +3,7 @@ This file contains the code for the Introduction page of the Data Analysis App.
 """
 
 import dash
-from dash import html, dcc
-from dash.dependencies import Input, Output, State
-from dash import dash_table
+from dash import html
 import dash_bootstrap_components as dbc
 
 # Register the page with Dash

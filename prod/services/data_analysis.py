@@ -9,35 +9,30 @@ and various charts based on the user's selection.
 Author: BitNBytes
 """
 
-# Import necessary libraries
+import base64
+import io
+import json
+import time
+import datetime
+import os
 import dash
 from dash import html, dcc, dash_table
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
-from dash.dependencies import Input, Output
 import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.cluster import KMeans
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
-import os
+from sklearn.preprocessing import MinMaxScaler
+from scipy import stats
 
 # Set environment variable to avoid memory leak issue with KMeans
 os.environ["OMP_NUM_THREADS"] = "1"
-from sklearn.cluster import KMeans
-import base64
-import io
-import dash
-import json
-import pandas as pd
-import numpy as np
-from dash import html, dcc, dash_table
-from dash.dependencies import Input, Output, State
-from scipy import stats
-from sklearn.preprocessing import MinMaxScaler
 
-import datetime
 
 # Register the page with Dash
 dash.register_page(
@@ -61,6 +56,7 @@ selected_tab_style = {
     "borderRadius": "15px",
     "margin": "10px",
 }
+dcc.Location(id="refresh", refresh=True),
 
 # Define the layout of the page
 layout = html.Div(
@@ -70,7 +66,6 @@ layout = html.Div(
             [
                 html.Div(
                     [
-                        # html.Label("Select File:" , style={"color": "white"} ),
                         dcc.Upload(
                             id="upload-data",
                             children=html.Div(
@@ -310,15 +305,28 @@ def render_tab_content(tab):
                         },
                         editable=True,
                     ),
-                    html.Button(
-                        "Save Changes",
-                        id="save-button",
-                        style={
-                            "margin": "10px",
-                            "color": "white",
-                            "background-color": "#007BFF",
-                        },
+                    html.Div(
+                        [
+                            html.Button(
+                                "Save Changes",
+                                id="save-button",
+                                style={
+                                    "backgroundColor": "#007BFF",
+                                    "color": "white",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "10px 10px 0px 0px",
+                                    "width": "100%",
+                                    "textAlign": "center",
+                                },
+                            ),
+                            html.Div(
+                                id="output-container-button",
+                                children='Enter your inputs and press "Save Changes"',
+                            ),
+                        ]
                     ),
+                    dcc.Location(id="refresh", refresh=True),
                     html.Div(
                         [
                             html.Label(
@@ -328,6 +336,15 @@ def render_tab_content(tab):
                                 id="column-to-clean",
                                 type="text",
                                 placeholder="Column to clean...",
+                                style={
+                                    "backgroundColor": "#007BFF",
+                                    "color": "white",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "10px 10px 0px 0px",
+                                    "width": "100%",
+                                    "textAlign": "center",
+                                },
                             ),
                             dcc.Dropdown(
                                 id="cleaning-operation",
@@ -393,6 +410,7 @@ def render_tab_content(tab):
                                 placeholder="New column name...",
                                 style={"margin-top": "10px"},
                             ),
+                            # dcc.Location(id="refresh", refresh=True),
                             html.Button(
                                 "Apply Cleaning",
                                 id="clean-data-btn",
@@ -934,10 +952,10 @@ def parse_contents(contents, filename, date):
             json_data = json.loads(json_str)
             df = pd.json_normalize(json_data)
         else:
-            raise ValueError("Unsupported file extension")
+            return html.H5(["Unsupported file extension"])
     except FileNotFoundError as e:
         print(f"Error processing the file {filename}: {e}")
-        return html.Div(["There was an error processing this file."])
+        return html.H5(["There was an error processing this file."])
 
     df.to_csv("local_data.csv", index=False)
 
@@ -976,6 +994,26 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
 
 @dash.callback(
+    Output("refresh", "pathname"),
+    [Input("upload-data", "contents"), Input("clean-data-btn", "n_clicks")],
+)
+def refresh_page(contents, n_clicks):
+    """
+    Refreshes the page after a delay of 2 seconds.
+
+    Args:
+        contents: The contents of the page.
+
+    Returns:
+        The path to the refreshed page.
+
+    """
+    if (contents is not None) or (n_clicks != 0):
+        time.sleep(2)
+        return "./data_analysis"
+
+
+@dash.callback(
     Output("cleaning-result", "children"),
     Input("clean-data-btn", "n_clicks"),
     State("column-to-clean", "value"),
@@ -999,7 +1037,6 @@ def apply_data_cleaning(
 
     Returns:
     - str: A message indicating whether the data cleaning was applied and saved or not.
-
     """
     if n_clicks > 0:
         df = pd.read_csv("local_data.csv")
@@ -1088,6 +1125,33 @@ def apply_data_cleaning(
     Output("table", "data"), Input("save-button", "n_clicks"), State("table", "data")
 )
 def save_changes(n_clicks, rows):
+    """
+    Save the changes made to the table data.
+
+    Parameters:
+    - n_clicks (int): The number of times the "save-button" has been clicked.
+    - rows (list): The current data in the table.
+
+    Returns:
+    - list: The updated data in the table.
+    """
     if n_clicks is not None and n_clicks > 0:
         pd.DataFrame(rows).to_csv("local_data.csv", index=False)
     return rows
+
+
+@dash.callback(
+    Output("output-container-button", "children"), [Input("save-button", "n_clicks")]
+)
+def save_table_data(n_clicks):
+    """
+    Saves the table data.
+
+    Parameters:
+    - n_clicks (int): The number of clicks.
+
+    Returns:
+    - str: A message indicating that the changes have been saved.
+    """
+    if n_clicks is not None:
+        return "Changes have been saved."
