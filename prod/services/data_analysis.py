@@ -994,7 +994,8 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
 @dash.callback(
     Output("refresh", "pathname"),
-    [Input("upload-data", "contents")],
+    Input("upload-data", "contents"),
+    # Input("clean-data-btn", "n_clicks"),
 )
 def refresh_page(contents):
     """
@@ -1002,6 +1003,7 @@ def refresh_page(contents):
 
     Args:
         contents: The contents of the page.
+        n_clicks: The number of times the "clean-data-btn" button has been clicked.
 
     Returns:
         The path to the refreshed page.
@@ -1010,6 +1012,9 @@ def refresh_page(contents):
     if contents is not None:
         time.sleep(2)
         return "./data_analysis"
+    # if n_clicks > 0:
+    #     time.sleep(2)
+    #     return "./data_analysis"
 
 
 @dash.callback(
