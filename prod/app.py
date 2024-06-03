@@ -14,12 +14,14 @@ Author: BitNBytes
 
 from dash import Dash, html, dcc
 import dash
+from dash.dependencies import Output, Input
 import plotly.express as px
 import dash_bootstrap_components as dbc
-from dash.dependencies import Output, Input
+import pandas as pd
+
 
 # Set the default template for Plotly Express
-px.defaults.template = "plotly_light"
+px.defaults.template = "plotly_dark"
 
 # Define external CSS stylesheets
 external_css = [dbc.themes.BOOTSTRAP]
@@ -62,13 +64,10 @@ sidebar = dbc.Nav(
             [
                 html.Div(
                     page["name"],
-                    style={"color": "#56D300"},
-                    
                 ),
             ],
             href=page["path"],
             active="exact",
-            style={"background-color": "#56D300" if page["name"] == "selected_page" else None},
         )
         for page in dash.page_registry.values()
     ],
@@ -99,6 +98,21 @@ app.layout = dbc.Container(
                             },
                         ),
                         sidebar,
+                        dcc.Download(id="download-data"),
+                        html.Button(
+                            "Download Data",
+                            id="btn-download",
+                            n_clicks=0,
+                            style={
+                                "backgroundColor": "#007BFF",
+                                "color": "white",
+                                "borderRadius": "10px",
+                                "padding": "5px",
+                                "margin": "10px 10px 0px 0px",
+                                "width": "100%",
+                                "textAlign": "center",
+                            },
+                        ),
                     ],
                     xs=4,
                     sm=4,
@@ -124,6 +138,28 @@ app.layout = dbc.Container(
     fluid=True,
     style={"position": "relative"},
 )
+
+
+@dash.callback(
+    Output("download-data", "data"),
+    Input("btn-download", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_data(n_clicks):
+    """
+    Downloads data from a CSV file and converts it to an Excel file.
+
+    Parameters:
+    - n_clicks (int): The number of times the download button is clicked.
+
+    Returns:
+    - dcc.send_data_frame: A Dash component to send the converted Excel file.
+
+    """
+    if n_clicks:
+        df = pd.read_csv("local_data.csv")
+        return dcc.send_data_frame(df.to_excel, "mydata.xlsx")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
