@@ -344,7 +344,7 @@ def render_tab_content(tab):
                     html.Div(
                         [
                             html.Label(
-                                "Data Cleaning Options:", style={"color": "white"}
+                                "Data Cleaning Options:", style={"color": "white", "padding": "5px"}
                             ),
                             dcc.Input(
                                 id="column-to-clean",
