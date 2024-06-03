@@ -54,7 +54,7 @@ layout = dbc.Container(
     fluid=True,
     style={
         "height": "100vh",
-        "background-color": "#4c4d4d",
+        "background-color": "#3f3f3f",
         "padding": "1rem",
         "margin": "0",
         "position": "fixed",

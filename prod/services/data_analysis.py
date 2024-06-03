@@ -22,6 +22,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.cluster import KMeans
@@ -62,11 +64,29 @@ tab_style = {
 }
 
 selected_tab_style = {
-    "backgroundColor": dark_green,
+    "backgroundColor": light_green,
     "color": "white",
     "borderRadius": "15px",
     "margin": "10px",
 }
+
+# Load the dataset
+df = pd.read_csv("local_data.csv")
+
+# Create options for the task and target variable dropdowns
+task_options = [
+    {"label": "Clustering", "value": "clustering"},
+    {"label": "Classification", "value": "classification"},
+]
+
+# Get only categorical columns for classification target variable
+categorical_columns = df.select_dtypes(include=["object", "category"]).columns
+
+# Get only numerical columns for clustering features
+numerical_columns = df.select_dtypes(include=[float, int]).columns
+
+# Create options for target variable dropdown based on the selected task
+target_variable_options = [{"label": col, "value": col} for col in categorical_columns]
 
 # Define the layout of the page
 layout = html.Div(
@@ -141,7 +161,12 @@ layout = html.Div(
         ),
         html.Div(id="tabs-content", style={"padding": "20px"}),
     ],
-    style={"backgroundColor": Grey},
+    style={
+        "background-color": Grey,
+        "position": "relative",
+        "margin": "0px",
+        "padding": "10px",
+    },
 )
 
 
@@ -198,7 +223,7 @@ def render_tab_content(tab):
                         "height": "auto",
                     },  # Wrap the cell content and adjust the cell height
                     style_cell={
-                        "textAlign": "left",
+                        "textAlign": "center",
                         "backgroundColor": white,  # Set the cell background color to dark
                         "color": "black",  # Set the cell text color to white
                         "border": "1px solid black",  # Add a border to the cells
@@ -210,8 +235,11 @@ def render_tab_content(tab):
                     },
                     style_table={
                         "overflowX": "auto",  # Add a horizontal scrollbar if the content overflows
-                        "maxHeight": "300px",  # Set a maximum height for the table
+                        # "maxHeight": "300px",  # Set a maximum height for the table
                         "overflowY": "auto",  # Add a vertical scrollbar if the content overflows
+                        "padding": "15px 0px 0px 45px",  # Add padding to the table cells
+                        "margin": "10px",  # Add margin to the table
+                        "justifyContent": "center",
                     },
                     fill_width=False,
                 )
@@ -228,16 +256,16 @@ def render_tab_content(tab):
                                         df,
                                         x=col,
                                         title=f"Distribution of {col}",
-                                        template="plotly_white",
+                                        template="seaborn",
                                     )
                                 ),
-                                summary_table,  # Add the summary table here
+                                summary_table,
                             ]
                         ),
-                        className="mb-3",  # add some bottom margin for each card
                         style={
                             "backgroundColor": white,
                             "color": "black",
+                            "margin": "10px",
                         },  # Set the background color to dark and the text color to white
                     )
                 else:
@@ -255,15 +283,14 @@ def render_tab_content(tab):
                                         x=col,
                                         y="count",
                                         title=f"Distribution of {col}",
-                                        template="plotly_white",
+                                        template="seaborn",
                                         # bar grpah colour
                                         color_discrete_sequence=["#007BFF"],
                                     )
                                 ),
-                                summary_table,  # Add the summary table here
+                                summary_table,
                             ]
                         ),
-                        className="mb-3",  # add some bottom margin for each card
                         style={
                             "backgroundColor": white,
                             "color": "black",
@@ -306,10 +333,10 @@ def render_tab_content(tab):
                         style_cell={
                             "whiteSpace": "normal",
                             "height": "auto",
-                            "textAlign": "left",
+                            "textAlign": "center",
                             "backgroundColor": white,  # Set the cell background color to dark
                             "color": "black",  # Set the cell text color to white
-                            "border": "1px solid black",  # Add a border to the cells
+                            "border": "2px solid black",  # Add a border to the cells
                         },
                         style_header={
                             "backgroundColor": dark_green,  # Set the header background color to blue
@@ -324,12 +351,12 @@ def render_tab_content(tab):
                                 "Save Changes",
                                 id="save-button",
                                 style={
-                                    "backgroundColor": "#007BFF",
-                                    "color": "white",
+                                    "backgroundColor": "#00a417",
+                                    "color": "black",
                                     "borderRadius": "10px",
                                     "padding": "5px",
-                                    "margin": "10px 10px 0px 0px",
-                                    "width": "100%",
+                                    "margin": "1px 0px 0px 10px",
+                                    "width": "90%",
                                     "textAlign": "center",
                                 },
                             ),
@@ -343,20 +370,9 @@ def render_tab_content(tab):
                         [
                             html.Label(
                                 "Data Cleaning Options:",
-                                style={"color": "white", "padding": "5px"},
-                            ),
-                            dcc.Input(
-                                id="column-to-clean",
-                                type="text",
-                                placeholder="Column to clean...",
                                 style={
-                                    "backgroundColor": "#007BFF",
                                     "color": "black",
-                                    "borderRadius": "10px",
-                                    "padding": "5px",
-                                    "margin": "10px 10px 0px 0px",
-                                    "width": "100%",
-                                    "textAlign": "center",
+                                    "textAlign": "left",
                                 },
                             ),
                             dcc.Dropdown(
@@ -409,26 +425,70 @@ def render_tab_content(tab):
                                     {"label": "Sort Descending", "value": "sort_desc"},
                                 ],
                                 placeholder="Select Cleaning Operation...",
-                                style={"margin-top": "10px"},
+                                style={
+                                    "textColor": "black",
+                                    "borderRadius": "10px",
+                                    "margin": "1px 10px 10px 0px",
+                                    "width": "95.5%",
+                                    "textAlign": "center",
+                                },
+                            ),
+                            dcc.Input(
+                                id="column-to-clean",
+                                type="text",
+                                placeholder="Column to clean...",
+                                style={
+                                    "backgroundColor": "#00a417",
+                                    "color": "black",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "1px 10px 10px 10px",
+                                    "width": "90%",
+                                    "textAlign": "center",
+                                },
                             ),
                             dcc.Input(
                                 id="fill-value",
                                 type="text",
                                 placeholder="Value to apply to cleaning operation/fill NA with...",
-                                style={"margin-top": "10px"},
+                                style={
+                                    "backgroundColor": "#00a417",
+                                    "color": "black",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "1px 10px 10px 10px",
+                                    "width": "90%",
+                                    "textAlign": "center",
+                                },
                             ),
                             dcc.Input(
                                 id="new-column-name",
                                 type="text",
                                 placeholder="New column name...",
-                                style={"margin-top": "10px"},
+                                style={
+                                    "backgroundColor": "#00a417",
+                                    "color": "black",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "1px 10px 10px 10px",
+                                    "width": "90%",
+                                    "textAlign": "center",
+                                },
                             ),
                             # dcc.Location(id="refresh", refresh=True),
                             html.Button(
                                 "Apply Cleaning",
                                 id="clean-data-btn",
                                 n_clicks=0,
-                                style={"margin-top": "10px"},
+                                style={
+                                    "backgroundColor": "#00a417",
+                                    "color": "black",
+                                    "borderRadius": "10px",
+                                    "padding": "5px",
+                                    "margin": "1px 10px 10px 10px",
+                                    "width": "90%",
+                                    "textAlign": "center",
+                                },
                             ),
                             html.Div(id="cleaning-result"),
                         ],
@@ -463,6 +523,13 @@ def render_tab_content(tab):
                     ],
                     value="",
                     placeholder="Select a chart type...",
+                    style={
+                        "textColor": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
+                    },
                 ),
                 dcc.Dropdown(
                     id="column-dropdown",
@@ -470,60 +537,84 @@ def render_tab_content(tab):
                     value="",
                     placeholder="Select a column...",
                     style={
-                        "margin-top": "10px",
+                        "textColor": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
                     },
                 ),
-                html.Div(id="chart-container"),
+                html.Div(
+                    id="chart-container",
+                    style={
+                        "height": "60vh",
+                    },
+                ),
             ]
         )
     # Add a new case in the render_tab_content function
     elif tab == "tab-machine-learning":
-        # Read the data from the local_data.csv file
-        df = pd.read_csv("local_data.csv")
-
-        # Create options for the task and target variable dropdowns
-        task_options = [
-            {"label": "Clustering", "value": "clustering"},
-            {"label": "Classification", "value": "classification"},
-        ]
-        # Get only categorical columns
-        categorical_columns = df.select_dtypes(include=["object", "category"]).columns
-
-        # Create options for target variable dropdown
-        target_variable_options = [
-            {"label": col, "value": col} for col in categorical_columns
-        ]
-
-        # Return a Div component with dropdowns for task and target variable selection
         return html.Div(
             [
-                html.H1("Machine Learning Task Selector"),
+                html.H3("Machine Learning Task Selector", style={"color": "white"}),
                 dcc.Dropdown(
                     id="task-dropdown",
                     options=task_options,
                     value="",
                     placeholder="Select a task...",
+                    style={
+                        "color": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
+                    },
                 ),
                 dcc.Dropdown(
                     id="target-variable-dropdown",
                     options=target_variable_options,
                     value="",
-                    style={"margin-top": "10px"},
+                    style={
+                        "color": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
+                    },
                     placeholder="Select a target variable...",
                 ),
                 html.Div(id="ml-results"),
                 dcc.Dropdown(
                     id="x-variable",
-                    options=[{"label": i, "value": i} for i in df.columns],
+                    options=[{"label": col, "value": col} for col in numerical_columns],
                     value="",
                     placeholder="Select x-axis...",
+                    style={
+                        "color": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
+                    },
                 ),
                 dcc.Dropdown(
                     id="y-variable",
-                    options=[{"label": i, "value": i} for i in df.columns],
-                    style={"margin-top": "10px"},
+                    options=[{"label": col, "value": col} for col in numerical_columns],
+                    style={
+                        "color": "black",
+                        "borderRadius": "10px",
+                        "margin": "1px 10px 10px 0px",
+                        "width": "95.5%",
+                        "textAlign": "center",
+                    },
                     value="",
                     placeholder="Select y-axis...",
+                ),
+                html.Div(
+                    id="ml-results",
+                    style={
+                        "height": "60vh",
+                    },
                 ),
             ]
         )
@@ -551,10 +642,22 @@ def update_chart(chart_type, column_name):
         return html.Div("Select a valid column.")
     if chart_type == "histogram":
         # Generate a histogram for the selected column
-        return dcc.Graph(figure=px.histogram(df, x=column_name))
+        return dcc.Graph(
+            figure=px.histogram(
+                df,
+                x=column_name,
+                template="seaborn",
+            )
+        )
     elif chart_type == "boxplot":
         # Generate a box plot for the selected column
-        return dcc.Graph(figure=px.box(df, y=column_name))
+        return dcc.Graph(
+            figure=px.box(
+                df,
+                y=column_name,
+                template="seaborn",
+            )
+        )
     elif chart_type == "scatter":
         # Create options for the scatter plot axes dropdowns based on the columns in the data
         column_options = [{"label": col, "value": col} for col in df.columns]
@@ -576,7 +679,11 @@ def update_chart(chart_type, column_name):
         if pd.api.types.is_numeric_dtype(df[column_name]):
             return dcc.Graph(
                 figure=px.line(
-                    df, x=df.index, y=column_name, title=f"Line Plot of {column_name}"
+                    df,
+                    x=df.index,
+                    y=column_name,
+                    title=f"Line Plot of {column_name}",
+                    template="seaborn",
                 )
             )
         else:
@@ -585,7 +692,11 @@ def update_chart(chart_type, column_name):
             data.columns = [column_name, "count"]
             return dcc.Graph(
                 figure=px.line(
-                    data, x=column_name, y="count", title=f"Line Plot of {column_name}"
+                    data,
+                    x=column_name,
+                    y="count",
+                    title=f"Line Plot of {column_name}",
+                    template="seaborn",
                 )
             )
     elif chart_type == "bar":
@@ -603,6 +714,7 @@ def update_chart(chart_type, column_name):
                     x=column_name,
                     y="count",
                     title=f"Distribution of {column_name}",
+                    template="seaborn",
                 )
             )
         else:
@@ -615,6 +727,7 @@ def update_chart(chart_type, column_name):
                     x=column_name,
                     y="count",
                     title=f"Distribution of {column_name}",
+                    template="seaborn",
                 )
             )
     elif chart_type == "pie":
@@ -625,7 +738,10 @@ def update_chart(chart_type, column_name):
             # Generate a pie chart for the selected column
             return dcc.Graph(
                 figure=px.pie(
-                    df, names=column_name, title=f"Pie chart of {column_name}"
+                    df,
+                    names=column_name,
+                    title=f"Pie chart of {column_name}",
+                    template="seaborn",
                 )
             )
     else:
@@ -652,10 +768,31 @@ def update_scatter_chart(x_axis, y_axis):
     if not x_axis or not y_axis:
         return html.Div("Select valid x-axis and y-axis values.")
     df = pd.read_csv("local_data.csv")
-    fig = px.scatter(df, x=x_axis, y=y_axis)
+    fig = px.scatter(
+        df,
+        x=x_axis,
+        y=y_axis,
+        template="seaborn",
+    )
     return dcc.Graph(figure=fig)
 
 
+# Define the callback for updating the target variable options based on the selected task
+@dash.callback(
+    Output("target-variable-dropdown", "options"),
+    [Input("task-dropdown", "value")],
+)
+def update_target_variable_options(task):
+    if task == "clustering":
+        options = [{"label": col, "value": col} for col in numerical_columns]
+    elif task == "classification":
+        options = [{"label": col, "value": col} for col in categorical_columns]
+    else:
+        options = []
+    return options
+
+
+# Define the callback for performing the machine learning task
 @dash.callback(
     Output("ml-results", "children"),
     [
@@ -666,7 +803,7 @@ def update_scatter_chart(x_axis, y_axis):
     ],
     prevent_initial_call=True,
 )
-def perform_ml_task(task, target_variable, x_variable, y_variable):
+def perform_ml_task(task, target_variable, x_variable=None, y_variable=None):
     """
     Perform the selected machine learning task based on the user's selection.
 
@@ -677,29 +814,26 @@ def perform_ml_task(task, target_variable, x_variable, y_variable):
     Returns:
     - html.Div: The results of the machine learning task.
     """
-    # Read the data from the local_data.csv file
     try:
         df = pd.read_csv("local_data.csv")
     except FileNotFoundError:
         return html.Div("Data file not found. Please upload data in the drop box.")
 
     if target_variable not in df.columns:
-        return html.Div("Target variable not found in the dataset.")
+        return html.Div("Select a valid Target variable.")
 
     if task == "clustering":
         try:
             # Remove the label column
             X = df.drop(columns=[target_variable])
+            y = df[target_variable]
 
             # Ensure all feature columns are numerical
-            for col in X.columns:
-                if X[col].dtype == "object":
-                    label_encoder = LabelEncoder()
-                    X[col] = label_encoder.fit_transform(X[col])
+            X = X.select_dtypes(include=[float, int])
 
-            # Split the data into training and testing sets
+            # Split the data into training and testing sets without stratification
             X_train, X_test, y_train, y_test = train_test_split(
-                X, df[target_variable], test_size=0.25, random_state=42
+                X, y, test_size=0.25, random_state=42
             )
 
             # Apply K-Means clustering
@@ -710,50 +844,67 @@ def perform_ml_task(task, target_variable, x_variable, y_variable):
             train_clusters = kmeans.predict(X_train)
             test_clusters = kmeans.predict(X_test)
 
-            # Map clusters to original class names based on majority voting
-            cluster_labels = {}
-            for i in range(3):
-                mask = train_clusters == i
-                cluster_labels[i] = y_train[mask].mode()[0]
+            # Create a mesh grid for decision boundaries
+            h = 0.02  # Step size of the mesh
+            x_min, x_max = X_train[x_variable].min() - 1, X_train[x_variable].max() + 1
+            y_min, y_max = X_train[y_variable].min() - 1, X_train[y_variable].max() + 1
+            xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 
-            # Apply the mapping to the cluster labels
-            train_cluster_names = pd.Series(train_clusters).map(cluster_labels)
-            test_cluster_names = pd.Series(test_clusters).map(cluster_labels)
+            # Obtain labels for each point in mesh
+            Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
+            Z = Z.reshape(xx.shape)
 
             # Visualization
             visuals = []
             if x_variable in X.columns and y_variable in X.columns:
-                x_min, x_max = (
-                    X_train[x_variable].min() - 1,
-                    X_train[x_variable].max() + 1,
-                )
-                y_min, y_max = (
-                    X_train[y_variable].min() - 1,
-                    X_train[y_variable].max() + 1,
-                )
-
                 # Create plotly figure for training data
                 fig_train = px.scatter(
                     x=X_train[x_variable],
                     y=X_train[y_variable],
-                    color=train_cluster_names.astype(str),
+                    color=train_clusters.astype(str),
                     title="Training Data Clusters",
                 )
                 fig_train.update_traces(
                     marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
                 )
+
+                # Add decision boundary to the plot
+                fig_train.add_trace(
+                    go.Contour(
+                        x=xx[0],
+                        y=yy[:, 0],
+                        z=Z,
+                        showscale=False,
+                        opacity=0.4,
+                        colorscale="Viridis",
+                    )
+                )
+
                 visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
 
                 # Create plotly figure for test data
                 fig_test = px.scatter(
                     x=X_test[x_variable],
                     y=X_test[y_variable],
-                    color=test_cluster_names.astype(str),
+                    color=test_clusters.astype(str),
                     title="Test Data Clusters",
                 )
                 fig_test.update_traces(
                     marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
                 )
+
+                # Add decision boundary to the plot
+                fig_test.add_trace(
+                    go.Contour(
+                        x=xx[0],
+                        y=yy[:, 0],
+                        z=Z,
+                        showscale=False,
+                        opacity=0.4,
+                        colorscale="Viridis",
+                    )
+                )
+
                 visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
             else:
                 visuals = [
@@ -787,154 +938,160 @@ def perform_ml_task(task, target_variable, x_variable, y_variable):
             return html.Div(f"Error in clustering: {str(e)}")
 
     elif task == "classification":
-        try:
-            # Initialize the label encoder
-            label_encoder = LabelEncoder()
-            # Encode the target variable if it's categorical
-            if df[target_variable].dtype == "object":
-                df[target_variable] = label_encoder.fit_transform(df[target_variable])
-                target_names = label_encoder.classes_
+        # Placeholder for classification logic
+        return html.Div("Classification task is not yet implemented.")
+    else:
+        return html.Div("Select a valid task.")
 
-            # Features and target
-            X = df[[x_variable, y_variable]]
-            y = df[target_variable]
+    # elif task == "classification":
+    #     try:
+    #         # Initialize the label encoder
+    #         label_encoder = LabelEncoder()
+    #         # Encode the target variable if it's categorical
+    #         if df[target_variable].dtype == "object":
+    #             df[target_variable] = label_encoder.fit_transform(df[target_variable])
+    #             target_names = label_encoder.classes_
 
-            # Ensure all feature columns are numerical
-            for col in X.columns:
-                if X[col].dtype == "object":
-                    X[col] = label_encoder.fit_transform(X[col])
+    #         # Features and target
+    #         X = df[[x_variable, y_variable]]
+    #         y = df[target_variable]
 
-            # Split the data into training and testing sets
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.3, random_state=42
-            )
+    #         # Ensure all feature columns are numerical
+    #         for col in X.columns:
+    #             if X[col].dtype == "object":
+    #                 X[col] = label_encoder.fit_transform(X[col])
 
-            # Create an instance of the SVC class with a linear kernel
-            svm_model = SVC(kernel="linear", C=1.0)
+    #         # Split the data into training and testing sets
+    #         X_train, X_test, y_train, y_test = train_test_split(
+    #             X, y, test_size=0.3, random_state=42
+    #         )
 
-            # Fit the model to the training data
-            svm_model.fit(X_train, y_train)
+    #         # Create an instance of the SVC class with a linear kernel
+    #         svm_model = SVC(kernel="linear", C=1.0)
 
-            # Predictions
-            train_predictions = svm_model.predict(X_train)
-            test_predictions = svm_model.predict(X_test)
+    #         # Fit the model to the training data
+    #         svm_model.fit(X_train, y_train)
 
-            # Reverse the label encoding for the classification report
-            y_train_names = label_encoder.inverse_transform(y_train)
-            y_test_names = label_encoder.inverse_transform(y_test)
-            train_predictions_names = label_encoder.inverse_transform(train_predictions)
-            test_predictions_names = label_encoder.inverse_transform(test_predictions)
+    #         # Predictions
+    #         train_predictions = svm_model.predict(X_train)
+    #         test_predictions = svm_model.predict(X_test)
 
-            # Classification reports
-            train_report = classification_report(
-                y_train_names,
-                train_predictions_names,
-                target_names=target_names,
-                zero_division=0,
-                output_dict=True,
-            )
-            test_report = classification_report(
-                y_test_names,
-                test_predictions_names,
-                target_names=target_names,
-                zero_division=0,
-                output_dict=True,
-            )
+    #         # Reverse the label encoding for the classification report
+    #         y_train_names = label_encoder.inverse_transform(y_train)
+    #         y_test_names = label_encoder.inverse_transform(y_test)
+    #         train_predictions_names = label_encoder.inverse_transform(train_predictions)
+    #         test_predictions_names = label_encoder.inverse_transform(test_predictions)
 
-            # Visualization
-            visuals = []
-            if x_variable in X.columns and y_variable in X.columns:
-                x_min, x_max = (
-                    X_train[x_variable].min() - 1,
-                    X_train[x_variable].max() + 1,
-                )
-                y_min, y_max = (
-                    X_train[y_variable].min() - 1,
-                    X_train[y_variable].max() + 1,
-                )
-                xx, yy = np.meshgrid(
-                    np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01)
-                )
-                Z = svm_model.predict(np.c_[xx.ravel(), yy.ravel()])
-                Z = Z.reshape(xx.shape)
+    #         # Classification reports
+    #         train_report = classification_report(
+    #             y_train_names,
+    #             train_predictions_names,
+    #             target_names=target_names,
+    #             zero_division=0,
+    #             output_dict=True,
+    #         )
+    #         test_report = classification_report(
+    #             y_test_names,
+    #             test_predictions_names,
+    #             target_names=target_names,
+    #             zero_division=0,
+    #             output_dict=True,
+    #         )
 
-                # Create plotly figure for training data
-                fig_train = px.scatter(
-                    x=X_train[x_variable],
-                    y=X_train[y_variable],
-                    color=pd.Series(y_train_names).astype(str),
-                    title="Training Data",
-                )
-                fig_train.update_traces(
-                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
-                )
-                fig_train.add_contour(
-                    x=np.arange(x_min, x_max, 0.01),
-                    y=np.arange(y_min, y_max, 0.01),
-                    z=Z,
-                    colorscale="Viridis",
-                    opacity=0.3,
-                )
-                visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
+    #         # Visualization
+    #         visuals = []
+    #         if x_variable in X.columns and y_variable in X.columns:
+    #             x_min, x_max = (
+    #                 X_train[x_variable].min() - 1,
+    #                 X_train[x_variable].max() + 1,
+    #             )
+    #             y_min, y_max = (
+    #                 X_train[y_variable].min() - 1,
+    #                 X_train[y_variable].max() + 1,
+    #             )
+    #             xx, yy = np.meshgrid(
+    #                 np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01)
+    #             )
+    #             Z = svm_model.predict(np.c_[xx.ravel(), yy.ravel()])
+    #             Z = Z.reshape(xx.shape)
 
-                # Create plotly figure for test data
-                fig_test = px.scatter(
-                    x=X_test[x_variable],
-                    y=X_test[y_variable],
-                    color=pd.Series(y_test_names).astype(str),
-                    title="Test Data",
-                )
-                fig_test.update_traces(
-                    marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
-                )
-                fig_test.add_contour(
-                    x=np.arange(x_min, x_max, 0.01),
-                    y=np.arange(y_min, y_max, 0.01),
-                    z=Z,
-                    colorscale="Viridis",
-                    opacity=0.3,
-                )
-                visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
-            else:
-                visuals = [
-                    html.Div(
-                        "Selected features for visualization are not in the dataset."
-                    )
-                ]
+    #             # Create plotly figure for training data
+    #             fig_train = px.scatter(
+    #                 x=X_train[x_variable],
+    #                 y=X_train[y_variable],
+    #                 color=pd.Series(y_train_names).astype(str),
+    #                 title="Training Data",
+    #             )
+    #             fig_train.update_traces(
+    #                 marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+    #             )
+    #             fig_train.add_contour(
+    #                 x=np.arange(x_min, x_max, 0.01),
+    #                 y=np.arange(y_min, y_max, 0.01),
+    #                 z=Z,
+    #                 colorscale="Viridis",
+    #                 opacity=0.3,
+    #             )
+    #             visuals.append(dcc.Graph(figure=fig_train, id="train-plot"))
 
-            return html.Div(
-                [
-                    html.H1("SVM Classification Report"),
-                    dcc.Tabs(
-                        [
-                            dcc.Tab(
-                                label="Training Set",
-                                children=[
-                                    html.Pre(
-                                        id="train-report",
-                                        children=json.dumps(train_report, indent=2),
-                                    ),
-                                    *visuals[
-                                        :1
-                                    ],  # Only include train-plot if available
-                                ],
-                            ),
-                            dcc.Tab(
-                                label="Testing Set",
-                                children=[
-                                    html.Pre(
-                                        id="test-report",
-                                        children=json.dumps(test_report, indent=2),
-                                    ),
-                                    *visuals[1:],  # Only include test-plot if available
-                                ],
-                            ),
-                        ]
-                    ),
-                ]
-            )
-        except Exception as e:
-            return html.Div(f"Error in classification: {str(e)}")
+    #             # Create plotly figure for test data
+    #             fig_test = px.scatter(
+    #                 x=X_test[x_variable],
+    #                 y=X_test[y_variable],
+    #                 color=pd.Series(y_test_names).astype(str),
+    #                 title="Test Data",
+    #             )
+    #             fig_test.update_traces(
+    #                 marker=dict(line=dict(width=0.5, color="DarkSlateGrey"))
+    #             )
+    #             fig_test.add_contour(
+    #                 x=np.arange(x_min, x_max, 0.01),
+    #                 y=np.arange(y_min, y_max, 0.01),
+    #                 z=Z,
+    #                 colorscale="Viridis",
+    #                 opacity=0.3,
+    #             )
+    #             visuals.append(dcc.Graph(figure=fig_test, id="test-plot"))
+    #         else:
+    #             visuals = [
+    #                 html.Div(
+    #                     "Selected features for visualization are not in the dataset."
+    #                 )
+    #             ]
+
+    #         return html.Div(
+    #             [
+    #                 html.H1("SVM Classification Report"),
+    #                 dcc.Tabs(
+    #                     [
+    #                         dcc.Tab(
+    #                             label="Training Set",
+    #                             children=[
+    #                                 html.Pre(
+    #                                     id="train-report",
+    #                                     children=json.dumps(train_report, indent=2),
+    #                                 ),
+    #                                 *visuals[
+    #                                     :1
+    #                                 ],  # Only include train-plot if available
+    #                             ],
+    #                         ),
+    #                         dcc.Tab(
+    #                             label="Testing Set",
+    #                             children=[
+    #                                 html.Pre(
+    #                                     id="test-report",
+    #                                     children=json.dumps(test_report, indent=2),
+    #                                 ),
+    #                                 *visuals[1:],  # Only include test-plot if available
+    #                             ],
+    #                         ),
+    #                     ]
+    #                 ),
+    #             ]
+    #         )
+    #     except Exception as e:
+    #         return html.Div(f"Error in classification: {str(e)}")
 
     return html.Div("Select a valid task.")
 

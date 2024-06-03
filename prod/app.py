@@ -50,11 +50,12 @@ SIDEBAR_STYLE = {
 # Styling for content area
 CONTENT_STYLE = {
     "margin-left": "15.25rem",
-    "position": "absolute",
+    "position": "static",
     "top": "0rem",
     "right": "0rem",
     "bottom": "0rem",
     "left": "0rem",
+    "background-color": "#3f3f3f",
 }
 
 # Create the sidebar navigation hierarchy
@@ -129,7 +130,10 @@ app.layout = dbc.Container(
         )
     ],
     fluid=True,
-    style={"position": "relative"},
+    style={
+        "position": "relative",
+        "background-color": "#3f3f3f",
+    },
 )
 
 
