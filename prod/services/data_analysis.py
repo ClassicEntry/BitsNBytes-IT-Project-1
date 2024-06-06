@@ -344,7 +344,7 @@ def render_tab_content(tab):
                                 id="save-button",
                                 style={
                                     "backgroundColor": "#00a417",
-                                    "color": "black",
+                                    "color": white ,
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "1px 0px 0px 10px",
@@ -363,7 +363,7 @@ def render_tab_content(tab):
                             html.Label(
                                 "Data Cleaning Options:",
                                 style={
-                                    "color": "black",
+                                    "color": white ,
                                     "textAlign": "left",
                                 },
                             ),
@@ -418,7 +418,7 @@ def render_tab_content(tab):
                                 ],
                                 placeholder="Select Cleaning Operation...",
                                 style={
-                                    "textColor": "black",
+                                    "textColor": white,
                                     "borderRadius": "10px",
                                     "margin": "1px 10px 10px 0px",
                                     "width": "95.5%",
@@ -431,7 +431,7 @@ def render_tab_content(tab):
                                 placeholder="Column to clean...",
                                 style={
                                     "backgroundColor": "#00a417",
-                                    "color": "black",
+                                    "color": white ,
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "1px 10px 10px 10px",
@@ -445,7 +445,7 @@ def render_tab_content(tab):
                                 placeholder="Value to apply to cleaning operation/fill NA with...",
                                 style={
                                     "backgroundColor": "#00a417",
-                                    "color": "black",
+                                    "color": white,
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "1px 10px 10px 10px",
@@ -459,7 +459,7 @@ def render_tab_content(tab):
                                 placeholder="New column name...",
                                 style={
                                     "backgroundColor": "#00a417",
-                                    "color": "black",
+                                    "color": white ,
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "1px 10px 10px 10px",
@@ -474,7 +474,7 @@ def render_tab_content(tab):
                                 n_clicks=0,
                                 style={
                                     "backgroundColor": "#00a417",
-                                    "color": "black",
+                                    "color": white ,
                                     "borderRadius": "10px",
                                     "padding": "5px",
                                     "margin": "1px 10px 10px 10px",
@@ -625,7 +625,7 @@ def update_chart(chart_type, column_name):
     # Read the data from the local_data.csv file
     df = pd.read_csv("local_data.csv")
     if not column_name or column_name not in df.columns:
-        return html.Div("Select a valid column.")
+        return html.Div("Select a valid column.", )
     if chart_type == "histogram":
         # Generate a histogram for the selected column
         return dcc.Graph(
@@ -752,7 +752,7 @@ def update_scatter_chart(x_axis, y_axis):
     - dash_html_components.Div: The scatter chart container with the updated scatter chart.
     """
     if not x_axis or not y_axis:
-        return html.Div("Select valid x-axis and y-axis values.")
+        return html.Div("Select valid x-axis and y-axis values.", style={"color": "white"})
     df = pd.read_csv("local_data.csv")
     fig = px.scatter(
         df,
@@ -820,13 +820,13 @@ def perform_machine_learning(task, target_variable, x_variable, y_variable):
         return html.Div("Data file not found. Please upload data in the drop box.")
 
     if task not in ["clustering", "classification"]:
-        return html.Div("Select a valid task.")
+        return html.Div("Select a valid task.", style={"color": "white"})
 
     if x_variable not in df.columns or y_variable not in df.columns:
-        return html.Div("Select valid x and y variables.")
+        return html.Div("Select valid x and y variables.", style={"color": "white"} )
 
     if task == "classification" and target_variable not in df.columns:
-        return html.Div("Select a valid target variable for classification.")
+        return html.Div("Select a valid target variable for classification." ,style={"color": "white"})
 
     try:
         if task == "clustering":
@@ -993,10 +993,11 @@ def perform_machine_learning(task, target_variable, x_variable, y_variable):
             return html.Div(
                 [
                     html.H4("Classification Report", style={"color": "white"}),
-                    html.Pre(report),
+                    html.Pre(report , style={"color": "white"}),
                     html.H4(
                         "Confusion Matrix",
                         style={
+                            "color": "white",
                             "margin": "1px 10px 10px 0px",
                             "textAlign": "center",
                         },
@@ -1061,7 +1062,7 @@ def parse_contents(contents, filename, date):
 
     return html.Div(
         [
-            html.H5("Successfully imported " + filename),
+            html.H5("Successfully imported " + filename , style={"color": "white"} ),
             html.H6("Last Modified: " + str(datetime.datetime.fromtimestamp(date))),
         ]
     )
