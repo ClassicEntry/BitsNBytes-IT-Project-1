@@ -228,7 +228,7 @@ def render_tab_content(tab):
                     style_table={
                         "overflowX": "auto",  # Add a horizontal scrollbar if the content overflows
                         "overflowY": "auto",  # Add a vertical scrollbar if the content overflows
-                        "padding": "15px 0px 0px 45px",  # Add padding to the table cells
+                        "padding": "15px 0px 0px 15px",  # Add padding to the table cells
                         "margin": "10px",  # Add margin to the table
                         "justifyContent": "center",
                     },
