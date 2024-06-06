@@ -7,8 +7,6 @@ dash_bootstrap_components
 scipy
 numpy
 python-dateutil
-dash[testing]
-#dash\[testing] #Uncomment for Mac
-pytest
-pytest-webdriver
 selenium
+datetime
+scikit-learn

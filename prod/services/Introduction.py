@@ -43,8 +43,7 @@ layout = dbc.Container(
                             "Additionally, explore machine learning capabilities in the Machine Learning tab.",
                             className="mb-4 text-light text-center",
                         ),
-                        
-                         html.H3(
+                        html.H3(
                             "To download your processed data, use the 'Download Data' button in the sidebar.",
                             className="mb-4 text-light text-center",
                         ),
