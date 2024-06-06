@@ -31,14 +31,21 @@ layout = dbc.Container(
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
-                            "To get started, click on the Data Analysis Tab in the sidebar and click or drag to import a CSV, Excel or JSON file. "
-                            + "Once you have imported the data, you can view your data.",
-                            "You can perform data cleaning operations in the Table tab. ",
+                            "To get started, click on the Data Analysis Tab in the sidebar and click or drag to import a CSV, Excel, or JSON file. "
+                            "Once you have imported the data, you can view your data.",
                             className="mb-4 text-light text-center",
                         ),
                         html.H3(
-                            "You can perform machine learning operations on your data in the Machine Learning tab.",
-                            "",
+                            "You can perform data cleaning operations in the Table tab.",
+                            className="mb-4 text-light text-center",
+                        ),
+                        html.H3(
+                            "Additionally, explore machine learning capabilities in the Machine Learning tab.",
+                            className="mb-4 text-light text-center",
+                        ),
+                        
+                         html.H3(
+                            "To download your processed data, use the 'Download Data' button in the sidebar.",
                             className="mb-4 text-light text-center",
                         ),
                     ],
