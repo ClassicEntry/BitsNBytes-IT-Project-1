@@ -139,6 +139,15 @@ app.layout = dbc.Container(
 
 @app.callback(Output("sidebar-nav", "children"), [Input("url", "pathname")])
 def update_sidebar(pathname):
+    """
+    Update the sidebar navigation links based on the current pathname.
+
+    Args:
+        pathname (str): The current pathname of the page.
+
+    Returns:
+        list: A list of dbc.NavLink objects representing the updated sidebar navigation links.
+    """
     return [
         dbc.NavLink(
             [
