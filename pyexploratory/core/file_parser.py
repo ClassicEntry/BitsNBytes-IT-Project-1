@@ -33,7 +33,10 @@ def parse_upload(contents: str, filename: str) -> Optional[pd.DataFrame]:
     extension = os.path.splitext(filename)[1].lower()
 
     if extension == ".csv":
-        return pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+        try:
+            return pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+        except UnicodeDecodeError:
+            return pd.read_csv(io.StringIO(decoded.decode("latin-1")))
     elif extension in (".xlsx", ".xls"):
         return pd.read_excel(io.BytesIO(decoded))
     elif extension == ".json":

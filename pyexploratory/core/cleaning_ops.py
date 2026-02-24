@@ -179,5 +179,9 @@ def apply_operation(
     Raises:
         KeyError: If the operation is not recognized.
     """
+    if df.empty:
+        raise ValueError("Cannot apply operations to an empty DataFrame.")
+    if column not in df.columns:
+        raise KeyError(f"Column '{column}' not found. Available: {list(df.columns)}")
     fn = OPERATIONS[operation]
     return fn(df, column, fill_value=fill_value, new_name=new_name)

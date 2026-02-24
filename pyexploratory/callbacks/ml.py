@@ -14,6 +14,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from pyexploratory.config import LIGHT_GREEN
+from pyexploratory.core.validators import validate_ml_inputs, validate_classification_target
 from pyexploratory.core.data_store import (
     categorical_column_options,
     numeric_column_options,
@@ -95,10 +96,12 @@ def perform_machine_learning(
     if task not in ("clustering", "classification"):
         return html.Div("Select a valid task.", style={"color": "white"})
 
-    if not x_variable or x_variable not in df.columns:
-        return html.Div("Select a valid x variable.", style={"color": "white"})
-    if not y_variable or y_variable not in df.columns:
-        return html.Div("Select a valid y variable.", style={"color": "white"})
+    if not x_variable or not y_variable:
+        return html.Div("Select x and y variables.", style={"color": "white"})
+
+    error = validate_ml_inputs(df, x_variable, y_variable)
+    if error:
+        return dbc.Alert(error, color="warning")
 
     try:
         if task == "clustering":

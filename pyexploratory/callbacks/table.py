@@ -12,6 +12,7 @@ from dash.dependencies import Input, Output, State
 
 from pyexploratory.core.cleaning_ops import OPERATIONS, apply_operation
 from pyexploratory.core.data_store import read_data, write_data
+from pyexploratory.core.validators import validate_cleaning_compatibility
 from pyexploratory.tabs.table import DESTRUCTIVE_OPS
 
 # ---------------------------------------------------------------------------
@@ -93,6 +94,11 @@ def handle_clean_click(
             False,
             "",
         )
+
+    # Type compatibility check (e.g. lowercase on numeric column)
+    error = validate_cleaning_compatibility(df, operation, column_to_clean)
+    if error:
+        return dbc.Alert(error, color="warning"), None, False, ""
 
     # Destructive? → open confirmation modal
     if operation in DESTRUCTIVE_OPS:
