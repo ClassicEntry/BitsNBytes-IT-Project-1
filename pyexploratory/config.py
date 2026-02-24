@@ -114,3 +114,33 @@ INPUT_STYLE = {
     "width": "90%",
     "textAlign": "center",
 }
+
+# ---------------------------------------------------------------------------
+# Card / UI enhancement styles
+# ---------------------------------------------------------------------------
+CARD_BG = "#2d2d2d"
+CARD_BORDER = "#444444"
+TEXT_MUTED = "#aaaaaa"
+
+SECTION_CARD_STYLE = {
+    "backgroundColor": CARD_BG,
+    "borderRadius": "12px",
+    "border": f"1px solid {CARD_BORDER}",
+    "padding": "20px",
+    "marginBottom": "16px",
+}
+
+UPLOAD_STYLE = {
+    "width": "80%",
+    "height": "120px",
+    "lineHeight": "40px",
+    "borderWidth": "2px",
+    "borderStyle": "dashed",
+    "borderColor": LIGHT_GREEN,
+    "borderRadius": "12px",
+    "textAlign": "center",
+    "margin": "20px auto",
+    "backgroundColor": CARD_BG,
+    "cursor": "pointer",
+    "padding": "20px",
+}
