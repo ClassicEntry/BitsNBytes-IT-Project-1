@@ -11,7 +11,17 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
-from pyexploratory.config import GREY, LIGHT_GREEN, MAX_UPLOAD_SIZE_MB, SELECTED_TAB_STYLE, TAB_STYLE
+import dash_bootstrap_components as dbc
+
+from pyexploratory.config import (
+    GREY,
+    LIGHT_GREEN,
+    MAX_UPLOAD_SIZE_MB,
+    SECTION_CARD_STYLE,
+    SELECTED_TAB_STYLE,
+    TAB_STYLE,
+    UPLOAD_STYLE,
+)
 from pyexploratory.tabs import charts, machine_learning, summary, table
 
 # Set environment variable to avoid memory leak issue with KMeans
@@ -38,44 +48,44 @@ layout = html.Div(
     [
         html.H1("Data Analysis", className="text-light text-center fw-bold fs-1"),
         dcc.Location(id="refresh", refresh=True),
-        html.Div(
-            [
-                html.Div(
+        dbc.Card(
+            dcc.Upload(
+                id="upload-data",
+                children=html.Div(
                     [
-                        dcc.Upload(
-                            id="upload-data",
-                            children=html.Div(
-                                [
-                                    "Drag and Drop or ",
-                                    html.A("Select Files", style={"color": "white"}),
-                                    html.Br(),
-                                    html.Small(
-                                        f"CSV, Excel, JSON — max {MAX_UPLOAD_SIZE_MB}MB",
-                                        style={"color": "#aaaaaa"},
-                                    ),
-                                ],
-                                style={"color": "white"},
-                            ),
+                        html.Div(
+                            "Upload Your Data",
                             style={
-                                "width": "50%",
-                                "height": "80px",
-                                "lineHeight": "35px",
-                                "borderWidth": "3px",
-                                "borderStyle": "dashed",
-                                "borderRadius": "12px",
-                                "borderColor": LIGHT_GREEN,
-                                "textAlign": "center",
-                                "margin": "10px auto",
-                                "cursor": "pointer",
-                                "padding": "5px",
+                                "fontSize": "18px",
+                                "fontWeight": "600",
+                                "color": LIGHT_GREEN,
+                                "marginBottom": "8px",
                             },
-                            max_size=MAX_UPLOAD_SIZE_MB * 1024 * 1024,
-                            multiple=True,
+                        ),
+                        html.Div(
+                            [
+                                "Drag and Drop or ",
+                                html.A(
+                                    "Browse Files",
+                                    style={
+                                        "color": "white",
+                                        "textDecoration": "underline",
+                                    },
+                                ),
+                            ],
+                            style={"color": "#cccccc"},
+                        ),
+                        html.Small(
+                            f"Supports CSV, Excel, JSON — max {MAX_UPLOAD_SIZE_MB}MB",
+                            style={"color": "#aaaaaa", "marginTop": "4px"},
                         ),
                     ],
                 ),
-            ],
-            className="row",
+                style=UPLOAD_STYLE,
+                max_size=MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+                multiple=True,
+            ),
+            style=SECTION_CARD_STYLE,
         ),
         dcc.Loading(
             id="loading-upload",
@@ -113,7 +123,7 @@ layout = html.Div(
                 ),
             ],
             style={
-                "width": "50%",
+                "width": "100%",
                 "margin": "0 auto",
                 "padding": "5px",
             },
