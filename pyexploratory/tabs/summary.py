@@ -1,7 +1,8 @@
 """
 Summary tab layout builder.
 
-Renders per-column summary cards with statistics and distribution charts.
+Renders overview metrics row and per-column summary cards
+with statistics and distribution charts.
 """
 
 import dash_bootstrap_components as dbc
@@ -10,12 +11,44 @@ import plotly.express as px
 from dash import dash_table, dcc, html
 
 from pyexploratory.components.tables import (
+    SUMMARY_DARK_CELL_STYLE,
+    SUMMARY_DARK_HEADER_STYLE,
     SUMMARY_TABLE_STYLE,
-    TABLE_CELL_STYLE,
-    TABLE_HEADER_STYLE,
 )
-from pyexploratory.config import DARK_GREEN, LIGHT_BLUE, WHITE
+from pyexploratory.config import LIGHT_GREEN, SECTION_CARD_STYLE, TEXT_MUTED
 from pyexploratory.core.data_store import read_data
+
+
+def _metric_tile(label: str, value: str) -> dbc.Col:
+    """Build a single KPI tile for the overview row."""
+    return dbc.Col(
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.Div(
+                        label,
+                        style={
+                            "color": TEXT_MUTED,
+                            "fontSize": "13px",
+                            "marginBottom": "4px",
+                        },
+                    ),
+                    html.Div(
+                        value,
+                        style={
+                            "color": LIGHT_GREEN,
+                            "fontSize": "24px",
+                            "fontWeight": "700",
+                        },
+                    ),
+                ]
+            ),
+            style={**SECTION_CARD_STYLE, "textAlign": "center"},
+        ),
+        xs=6,
+        sm=6,
+        lg=3,
+    )
 
 
 def render() -> html.Div:
@@ -30,6 +63,27 @@ def render() -> html.Div:
             )
         )
 
+    # --- Overview metrics row ---
+    total_rows = len(df)
+    total_cols = len(df.columns)
+    missing_pct = (
+        f"{(df.isnull().sum().sum() / (total_rows * total_cols)) * 100:.1f}%"
+        if total_rows > 0
+        else "0%"
+    )
+    memory_mb = f"{df.memory_usage(deep=True).sum() / (1024 * 1024):.2f} MB"
+
+    overview = dbc.Row(
+        [
+            _metric_tile("Total Rows", f"{total_rows:,}"),
+            _metric_tile("Total Columns", str(total_cols)),
+            _metric_tile("Missing Values", missing_pct),
+            _metric_tile("Memory Usage", memory_mb),
+        ],
+        className="mb-3",
+    )
+
+    # --- Per-column cards ---
     cards = []
     for col in df.columns:
         summary = df[col].describe().reset_index()
@@ -45,64 +99,68 @@ def render() -> html.Div:
                 "Value": [
                     str(df[col].dtype),
                     df[col].isnull().sum(),
-                    "{:.2f}%".format((df[col].isnull().sum() / len(df[col])) * 100),
+                    "{:.2f}%".format(
+                        (df[col].isnull().sum() / len(df[col])) * 100
+                        if len(df[col]) > 0
+                        else 0
+                    ),
                 ],
             }
         )
-
         summary = pd.concat([summary, additional_stats], ignore_index=True)
 
         summary_table = dash_table.DataTable(
             data=summary.to_dict("records"),
             columns=[{"name": i, "id": i} for i in summary.columns],
             style_data={"whiteSpace": "normal", "height": "auto"},
-            style_cell=TABLE_CELL_STYLE,
-            style_header=TABLE_HEADER_STYLE,
+            style_cell=SUMMARY_DARK_CELL_STYLE,
+            style_header=SUMMARY_DARK_HEADER_STYLE,
             style_table=SUMMARY_TABLE_STYLE,
             fill_width=False,
         )
 
         if pd.api.types.is_numeric_dtype(df[col]):
-            card_content = dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.H4(col, className="card-title"),
-                        dcc.Graph(
-                            figure=px.histogram(
-                                df,
-                                x=col,
-                                title=f"Distribution of {col}",
-                                template="seaborn",
-                            )
-                        ),
-                        summary_table,
-                    ]
-                ),
-                style={"backgroundColor": WHITE, "color": "black", "margin": "10px"},
+            fig = px.histogram(
+                df,
+                x=col,
+                title=f"Distribution of {col}",
+                template="plotly_dark",
             )
         else:
             data = df[col].value_counts().reset_index()
             data.columns = [col, "count"]
-            card_content = dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.H4(col, className="card-title"),
-                        dcc.Graph(
-                            figure=px.bar(
-                                data,
-                                x=col,
-                                y="count",
-                                title=f"Distribution of {col}",
-                                template="seaborn",
-                                color_discrete_sequence=[LIGHT_BLUE],
-                            )
-                        ),
-                        summary_table,
-                    ]
-                ),
-                style={"backgroundColor": WHITE, "color": "black"},
+            fig = px.bar(
+                data,
+                x=col,
+                y="count",
+                title=f"Distribution of {col}",
+                template="plotly_dark",
+                color_discrete_sequence=[LIGHT_GREEN],
             )
 
-        cards.append(dbc.Col([dbc.Card(card_content, className="mb-3")], md=4))
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=10, r=10, t=40, b=10),
+        )
 
-    return html.Div(dbc.Row(cards))
+        card = dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5(
+                        col,
+                        style={
+                            "color": LIGHT_GREEN,
+                            "fontWeight": "600",
+                            "marginBottom": "12px",
+                        },
+                    ),
+                    dcc.Graph(figure=fig, config={"displayModeBar": False}),
+                    summary_table,
+                ]
+            ),
+            style=SECTION_CARD_STYLE,
+        )
+        cards.append(dbc.Col(card, xs=12, sm=6, lg=4, xl=3, className="mb-3"))
+
+    return html.Div([overview, dbc.Row(cards)])
