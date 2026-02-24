@@ -3,8 +3,8 @@ This file contains the code for the Introduction page of the Data Analysis App.
 """
 
 import dash
-from dash import html
 import dash_bootstrap_components as dbc
+from dash import html
 
 # Register the page with Dash
 dash.register_page(
