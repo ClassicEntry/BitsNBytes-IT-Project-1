@@ -13,7 +13,7 @@ from pyexploratory.components.tables import (
     DATA_TABLE_STYLE,
     TABLE_HEADER_STYLE,
 )
-from pyexploratory.config import DROPDOWN_STYLE, INPUT_STYLE, WHITE
+from pyexploratory.config import DROPDOWN_STYLE, INPUT_STYLE, LIGHT_GREEN, SECTION_CARD_STYLE, WHITE
 from pyexploratory.core.data_store import read_data
 
 # Operations that delete data — require confirmation
@@ -98,6 +98,7 @@ def render() -> html.Div:
                     "zIndex": 9999,
                 },
             ),
+            # Data table
             dash_table.DataTable(
                 id="table",
                 data=df.to_dict("records"),
@@ -109,6 +110,7 @@ def render() -> html.Div:
                 style_header=TABLE_HEADER_STYLE,
                 editable=True,
             ),
+            # Save button
             html.Div(
                 [
                     html.Button(
@@ -119,38 +121,86 @@ def render() -> html.Div:
                     html.Div(
                         id="output-container-button",
                         children='Enter your inputs and press "Save Changes"',
+                        style={"color": "#aaaaaa", "marginTop": "8px"},
                     ),
-                ]
+                ],
+                style={"margin": "10px 0"},
             ),
-            html.Div(
+            # Data Cleaning card
+            dbc.Card(
                 [
-                    html.Label(
-                        "Data Cleaning Options:",
-                        style={"color": WHITE, "textAlign": "left"},
+                    html.H5(
+                        "Data Cleaning",
+                        style={
+                            "color": LIGHT_GREEN,
+                            "fontWeight": "600",
+                            "marginBottom": "16px",
+                        },
                     ),
-                    dcc.Dropdown(
-                        id="cleaning-operation",
-                        options=CLEANING_OPTIONS,
-                        placeholder="Select Cleaning Operation...",
-                        style=DROPDOWN_STYLE,
-                    ),
-                    dcc.Input(
-                        id="column-to-clean",
-                        type="text",
-                        placeholder="Column to clean...",
-                        style=INPUT_STYLE,
-                    ),
-                    dcc.Input(
-                        id="fill-value",
-                        type="text",
-                        placeholder="Value to apply to cleaning operation/fill NA with...",
-                        style=INPUT_STYLE,
-                    ),
-                    dcc.Input(
-                        id="new-column-name",
-                        type="text",
-                        placeholder="New column name...",
-                        style=INPUT_STYLE,
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                [
+                                    html.Label(
+                                        "Operation:",
+                                        style={"color": WHITE, "fontSize": "13px"},
+                                    ),
+                                    dcc.Dropdown(
+                                        id="cleaning-operation",
+                                        options=CLEANING_OPTIONS,
+                                        placeholder="Select Cleaning Operation...",
+                                        style=DROPDOWN_STYLE,
+                                    ),
+                                ],
+                                md=3,
+                            ),
+                            dbc.Col(
+                                [
+                                    html.Label(
+                                        "Column:",
+                                        style={"color": WHITE, "fontSize": "13px"},
+                                    ),
+                                    dcc.Input(
+                                        id="column-to-clean",
+                                        type="text",
+                                        placeholder="Column to clean...",
+                                        style=INPUT_STYLE,
+                                    ),
+                                ],
+                                md=3,
+                            ),
+                            dbc.Col(
+                                [
+                                    html.Label(
+                                        "Fill Value:",
+                                        style={"color": WHITE, "fontSize": "13px"},
+                                    ),
+                                    dcc.Input(
+                                        id="fill-value",
+                                        type="text",
+                                        placeholder="Value for operation...",
+                                        style=INPUT_STYLE,
+                                    ),
+                                ],
+                                md=3,
+                            ),
+                            dbc.Col(
+                                [
+                                    html.Label(
+                                        "New Name:",
+                                        style={"color": WHITE, "fontSize": "13px"},
+                                    ),
+                                    dcc.Input(
+                                        id="new-column-name",
+                                        type="text",
+                                        placeholder="New column name...",
+                                        style=INPUT_STYLE,
+                                    ),
+                                ],
+                                md=3,
+                            ),
+                        ],
+                        className="mb-3",
                     ),
                     html.Button(
                         "Apply Cleaning",
@@ -158,9 +208,9 @@ def render() -> html.Div:
                         n_clicks=0,
                         style=CLEAN_BUTTON_STYLE,
                     ),
-                    html.Div(id="cleaning-result"),
+                    html.Div(id="cleaning-result", style={"marginTop": "10px"}),
                 ],
-                className="row",
+                style=SECTION_CARD_STYLE,
             ),
         ]
     )
