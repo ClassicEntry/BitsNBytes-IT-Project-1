@@ -1,7 +1,8 @@
 """
 Table tab layout builder.
 
-Renders the editable data table with cleaning controls.
+Renders the editable data table with cleaning controls,
+undo/redo buttons, and history log.
 """
 
 import dash_bootstrap_components as dbc
@@ -13,7 +14,15 @@ from pyexploratory.components.tables import (
     DATA_TABLE_STYLE,
     TABLE_HEADER_STYLE,
 )
-from pyexploratory.config import DROPDOWN_STYLE, INPUT_STYLE, LIGHT_GREEN, SECTION_CARD_STYLE, WHITE
+from pyexploratory.config import (
+    CARD_BG,
+    DROPDOWN_STYLE,
+    INPUT_STYLE,
+    LIGHT_GREEN,
+    SECTION_CARD_STYLE,
+    TEXT_MUTED,
+    WHITE,
+)
 from pyexploratory.core.data_store import read_data
 
 # Operations that delete data — require confirmation
@@ -41,6 +50,15 @@ CLEANING_OPTIONS = [
     {"label": "Sort Descending", "value": "sort_desc"},
 ]
 
+_UNDO_REDO_BTN = {
+    "borderRadius": "8px",
+    "border": "none",
+    "padding": "6px 16px",
+    "fontWeight": "600",
+    "cursor": "pointer",
+    "marginRight": "8px",
+}
+
 
 def render() -> html.Div:
     """Build the Table tab content."""
@@ -56,8 +74,9 @@ def render() -> html.Div:
 
     return html.Div(
         [
-            # Hidden store for pending destructive operation
+            # Hidden stores
             dcc.Store(id="pending-operation", data=None),
+            dcc.Store(id="history-trigger", data=0),
             # Confirmation modal
             dbc.Modal(
                 [
@@ -80,6 +99,18 @@ def render() -> html.Div:
                     ),
                 ],
                 id="confirm-modal",
+                is_open=False,
+            ),
+            # Preview modal
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Operation Preview")),
+                    dbc.ModalBody(id="preview-modal-body"),
+                    dbc.ModalFooter(
+                        dbc.Button("Close", id="preview-close", color="secondary"),
+                    ),
+                ],
+                id="preview-modal",
                 is_open=False,
             ),
             # Toast for operation feedback
@@ -110,7 +141,7 @@ def render() -> html.Div:
                 style_header=TABLE_HEADER_STYLE,
                 editable=True,
             ),
-            # Save button
+            # Save + Undo/Redo buttons row
             html.Div(
                 [
                     html.Button(
@@ -118,13 +149,33 @@ def render() -> html.Div:
                         id="save-button",
                         style=SAVE_BUTTON_STYLE,
                     ),
+                    html.Button(
+                        "Undo",
+                        id="undo-btn",
+                        n_clicks=0,
+                        style={
+                            **_UNDO_REDO_BTN,
+                            "backgroundColor": "#e67e22",
+                            "color": "white",
+                        },
+                    ),
+                    html.Button(
+                        "Redo",
+                        id="redo-btn",
+                        n_clicks=0,
+                        style={
+                            **_UNDO_REDO_BTN,
+                            "backgroundColor": "#3498db",
+                            "color": "white",
+                        },
+                    ),
                     html.Div(
                         id="output-container-button",
                         children='Enter your inputs and press "Save Changes"',
-                        style={"color": "#aaaaaa", "marginTop": "8px"},
+                        style={"color": TEXT_MUTED, "marginTop": "8px"},
                     ),
                 ],
-                style={"margin": "10px 0"},
+                style={"margin": "10px 0", "display": "flex", "alignItems": "center", "flexWrap": "wrap", "gap": "4px"},
             ),
             # Data Cleaning card
             dbc.Card(
@@ -202,13 +253,42 @@ def render() -> html.Div:
                         ],
                         className="mb-3",
                     ),
-                    html.Button(
-                        "Apply Cleaning",
-                        id="clean-data-btn",
-                        n_clicks=0,
-                        style=CLEAN_BUTTON_STYLE,
+                    html.Div(
+                        [
+                            html.Button(
+                                "Apply Cleaning",
+                                id="clean-data-btn",
+                                n_clicks=0,
+                                style=CLEAN_BUTTON_STYLE,
+                            ),
+                            html.Button(
+                                "Preview",
+                                id="preview-btn",
+                                n_clicks=0,
+                                style={
+                                    **_UNDO_REDO_BTN,
+                                    "backgroundColor": "#8e44ad",
+                                    "color": "white",
+                                },
+                            ),
+                        ],
+                        style={"display": "flex", "alignItems": "center", "gap": "8px"},
                     ),
                     html.Div(id="cleaning-result", style={"marginTop": "10px"}),
+                ],
+                style=SECTION_CARD_STYLE,
+            ),
+            # History log card
+            dbc.Card(
+                [
+                    html.H6(
+                        "Cleaning History",
+                        style={"color": LIGHT_GREEN, "fontWeight": "600", "marginBottom": "8px"},
+                    ),
+                    html.Div(
+                        id="history-log",
+                        style={"color": TEXT_MUTED, "fontSize": "13px", "maxHeight": "200px", "overflowY": "auto"},
+                    ),
                 ],
                 style=SECTION_CARD_STYLE,
             ),
