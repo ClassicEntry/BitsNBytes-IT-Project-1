@@ -80,6 +80,10 @@ SVM_DEFAULT_KERNEL = "linear"
 SVM_RANDOM_STATE = 42
 DEFAULT_TEST_SIZE = 0.25
 MESH_STEP_SIZE = 0.02
+DT_DEFAULT_MAX_DEPTH = 5
+DT_RANDOM_STATE = 42
+RF_DEFAULT_ESTIMATORS = 100
+RF_RANDOM_STATE = 42
 
 # ---------------------------------------------------------------------------
 # Shared button style
