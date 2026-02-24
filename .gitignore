@@ -11,5 +11,6 @@ htmlcov/
 .DS_Store
 .vscode/
 local_data.csv
+.pyexploratory_history/
 CLAUDE.md
 .claude/
