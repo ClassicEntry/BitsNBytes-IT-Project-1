@@ -11,7 +11,7 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
-from pyexploratory.config import GREY, SELECTED_TAB_STYLE, TAB_STYLE
+from pyexploratory.config import GREY, LIGHT_GREEN, MAX_UPLOAD_SIZE_MB, SELECTED_TAB_STYLE, TAB_STYLE
 from pyexploratory.tabs import charts, machine_learning, summary, table
 
 # Set environment variable to avoid memory leak issue with KMeans
@@ -48,19 +48,28 @@ layout = html.Div(
                                 [
                                     "Drag and Drop or ",
                                     html.A("Select Files", style={"color": "white"}),
+                                    html.Br(),
+                                    html.Small(
+                                        f"CSV, Excel, JSON — max {MAX_UPLOAD_SIZE_MB}MB",
+                                        style={"color": "#aaaaaa"},
+                                    ),
                                 ],
                                 style={"color": "white"},
                             ),
                             style={
                                 "width": "50%",
-                                "height": "60px",
-                                "lineHeight": "60px",
+                                "height": "80px",
+                                "lineHeight": "35px",
                                 "borderWidth": "3px",
                                 "borderStyle": "dashed",
-                                "borderRadius": "5px",
+                                "borderRadius": "12px",
+                                "borderColor": LIGHT_GREEN,
                                 "textAlign": "center",
                                 "margin": "10px auto",
+                                "cursor": "pointer",
+                                "padding": "5px",
                             },
+                            max_size=MAX_UPLOAD_SIZE_MB * 1024 * 1024,
                             multiple=True,
                         ),
                     ],
@@ -68,7 +77,12 @@ layout = html.Div(
             ],
             className="row",
         ),
-        html.Div(id="output-data-upload"),
+        dcc.Loading(
+            id="loading-upload",
+            type="circle",
+            color=LIGHT_GREEN,
+            children=html.Div(id="output-data-upload"),
+        ),
         dcc.Tabs(
             id="tabs",
             value="tab-summary",
