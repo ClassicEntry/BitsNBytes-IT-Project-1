@@ -14,6 +14,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
 from pyexploratory.config import LIGHT_GREEN
+from pyexploratory.core import action_log
 from pyexploratory.core.data_store import (
     categorical_column_options,
     numeric_column_options,
@@ -128,6 +129,13 @@ def perform_machine_learning(
         if not x_variable or not reg_target:
             return html.Div("Select X variable and target.", style={"color": "white"})
         try:
+            action_log.log_action({
+                "action_type": "ml",
+                "task": "regression",
+                "x_col": x_variable,
+                "target_col": reg_target,
+                "test_size": reg_test_size or 0.25,
+            })
             return _render_regression(df, x_variable, reg_target, reg_test_size or 0.25)
         except Exception as e:
             return dbc.Alert(f"Regression error: {e}", color="danger")
@@ -142,10 +150,26 @@ def perform_machine_learning(
 
     try:
         if task == "clustering":
+            action_log.log_action({
+                "action_type": "ml",
+                "task": "clustering",
+                "x_col": x_variable,
+                "y_col": y_variable,
+                "n_clusters": n_clusters or 3,
+            })
             return _render_clustering(df, x_variable, y_variable, n_clusters or 3)
         elif task == "classification":
             if not target_variable or target_variable not in df.columns:
                 return html.Div("Select a valid target variable.", style={"color": "white"})
+            action_log.log_action({
+                "action_type": "ml",
+                "task": "classification",
+                "x_col": x_variable,
+                "y_col": y_variable,
+                "target_col": target_variable,
+                "kernel": svm_kernel or "linear",
+                "test_size": test_size or 0.25,
+            })
             return _render_classification(
                 df, x_variable, y_variable, target_variable,
                 svm_kernel or "linear", test_size or 0.25,
@@ -153,6 +177,15 @@ def perform_machine_learning(
         elif task == "decision_tree":
             if not dt_target or dt_target not in df.columns:
                 return html.Div("Select a target variable for Decision Tree.", style={"color": "white"})
+            action_log.log_action({
+                "action_type": "ml",
+                "task": "decision_tree",
+                "x_col": x_variable,
+                "y_col": y_variable,
+                "target_col": dt_target,
+                "max_depth": dt_max_depth or 5,
+                "test_size": dt_test_size or 0.25,
+            })
             return _render_decision_tree(
                 df, x_variable, y_variable, dt_target,
                 dt_max_depth or 5, dt_test_size or 0.25,
@@ -160,6 +193,16 @@ def perform_machine_learning(
         elif task == "random_forest":
             if not rf_target or rf_target not in df.columns:
                 return html.Div("Select a target variable for Random Forest.", style={"color": "white"})
+            action_log.log_action({
+                "action_type": "ml",
+                "task": "random_forest",
+                "x_col": x_variable,
+                "y_col": y_variable,
+                "target_col": rf_target,
+                "n_estimators": rf_n_estimators or 100,
+                "max_depth": rf_max_depth or 5,
+                "test_size": rf_test_size or 0.25,
+            })
             return _render_random_forest(
                 df, x_variable, y_variable, rf_target,
                 rf_n_estimators or 100, rf_max_depth or 5, rf_test_size or 0.25,

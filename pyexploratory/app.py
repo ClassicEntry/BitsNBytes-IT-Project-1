@@ -74,6 +74,13 @@ app.layout = dbc.Container(
                             n_clicks=0,
                             style=DOWNLOAD_BUTTON_STYLE,
                         ),
+                        dcc.Download(id="download-script"),
+                        html.Button(
+                            "Export Script",
+                            id="btn-export-script",
+                            n_clicks=0,
+                            style=DOWNLOAD_BUTTON_STYLE,
+                        ),
                     ],
                     xs=4,
                     sm=4,

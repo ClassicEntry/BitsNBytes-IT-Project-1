@@ -11,6 +11,7 @@ import pandas as pd
 from dash import html, no_update
 from dash.dependencies import Input, Output, State
 
+from pyexploratory.core import action_log
 from pyexploratory.core.cleaning_ops import OPERATIONS, apply_operation
 from pyexploratory.core.data_store import read_data, write_data
 from pyexploratory.core import history
@@ -167,6 +168,13 @@ def handle_confirm(confirm_clicks, cancel_clicks, pending_data):
             df, op["operation"], op["column"], op["fill_value"], op["new_name"]
         )
         write_data(df)
+        action_log.log_action({
+            "action_type": "cleaning",
+            "operation": op["operation"],
+            "column": op["column"],
+            "fill_value": op["fill_value"],
+            "new_name": op["new_name"],
+        })
         return "Data cleaning applied and saved.", "success", True, False
     except Exception as e:
         return f"Cleaning error: {e}", "danger", True, False
@@ -190,6 +198,7 @@ def undo_callback(n_clicks):
     df = history.undo()
     if df is None:
         return no_update, dbc.Alert("Nothing to undo.", color="info")
+    action_log.undo_last_cleaning()
     return df.to_dict("records"), dbc.Alert("Undo successful.", color="success")
 
 
@@ -303,6 +312,13 @@ def _execute_cleaning(df, operation, column, fill_value, new_name):
         history.save_snapshot(operation, column, f"{operation} on {column}")
         df = apply_operation(df, operation, column, fill_value, new_name)
         write_data(df)
+        action_log.log_action({
+            "action_type": "cleaning",
+            "operation": operation,
+            "column": column,
+            "fill_value": fill_value,
+            "new_name": new_name,
+        })
         return dbc.Alert("Data cleaning applied and saved.", color="success")
     except Exception as e:
         return dbc.Alert(f"Cleaning error: {e}", color="danger")

@@ -14,6 +14,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
 from pyexploratory.config import LIGHT_GREEN
+from pyexploratory.core import action_log
 from pyexploratory.core.data_store import read_data
 from pyexploratory.tabs.charts import CHART_CONTROLS
 
@@ -108,7 +109,16 @@ def generate_chart(n_clicks, chart_type, x_col, y_col, color_col, size_col):
         builder = builders.get(chart_type)
         if not builder:
             return html.Div("Unknown chart type.", style={"color": "white"})
-        return builder(df, x_col, y_col, color_col, size_col)
+        result = builder(df, x_col, y_col, color_col, size_col)
+        action_log.log_action({
+            "action_type": "chart",
+            "chart_type": chart_type,
+            "x_col": x_col,
+            "y_col": y_col,
+            "color_col": color_col,
+            "size_col": size_col,
+        })
+        return result
     except Exception as e:
         return dbc.Alert(f"Chart error: {e}", color="danger")
 

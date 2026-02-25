@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
+from pyexploratory.core import action_log
 from pyexploratory.core.data_store import write_data
 from pyexploratory.core.file_parser import parse_upload
 
@@ -24,6 +25,10 @@ def _parse_and_save(contents: str, filename: str, date: int) -> html.Div:
         return dbc.Alert("Unsupported file format.", color="warning")
 
     write_data(df)
+
+    # Log the upload and clear any prior actions
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "csv"
+    action_log.reset_on_upload(filename, ext)
 
     return dbc.Alert(
         [
