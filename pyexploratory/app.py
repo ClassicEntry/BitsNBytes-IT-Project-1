@@ -81,6 +81,16 @@ app.layout = dbc.Container(
                             n_clicks=0,
                             style=DOWNLOAD_BUTTON_STYLE,
                         ),
+                        dcc.Upload(
+                            id="upload-script",
+                            children=html.Button(
+                                "Import Script",
+                                style=DOWNLOAD_BUTTON_STYLE,
+                            ),
+                            accept=".py",
+                            max_size=5 * 1024 * 1024,
+                        ),
+                        html.Div(id="import-script-feedback"),
                     ],
                     xs=4,
                     sm=4,
