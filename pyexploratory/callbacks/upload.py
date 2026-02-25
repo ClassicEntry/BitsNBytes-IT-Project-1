@@ -65,3 +65,43 @@ def refresh_page(contents):
     """Refresh to data_analysis page after upload."""
     if contents is not None:
         return "./data_analysis"
+
+
+@dash.callback(
+    Output("upload-area", "children"),
+    Output("upload-area", "style"),
+    Input("output-data-upload", "children"),
+)
+def collapse_upload_area(upload_output):
+    """Collapse upload area to a compact bar once data is loaded."""
+    if upload_output:
+        compact_upload = dcc.Upload(
+            id="upload-data",
+            children=html.Div(
+                [
+                    html.Span("\U0001f504", style={"marginRight": "8px"}),
+                    html.Span(
+                        "Re-upload / Change Dataset",
+                        style={"color": "#a0a0a0", "fontSize": "13px"},
+                    ),
+                ],
+                style={"display": "flex", "alignItems": "center", "justifyContent": "center"},
+            ),
+            style={
+                "width": "100%",
+                "height": "40px",
+                "lineHeight": "40px",
+                "borderWidth": "1px",
+                "borderStyle": "dashed",
+                "borderColor": "#3a3a3b",
+                "borderRadius": "6px",
+                "textAlign": "center",
+                "backgroundColor": "rgba(34, 34, 38, 0.6)",
+                "cursor": "pointer",
+            },
+            max_size=50 * 1024 * 1024,
+            multiple=True,
+        )
+        return compact_upload, {"margin": "8px 20px"}
+
+    return dash.no_update, dash.no_update

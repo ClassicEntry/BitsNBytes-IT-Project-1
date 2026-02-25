@@ -7,7 +7,7 @@ Renders multi-control chart selection with 14 chart types.
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from pyexploratory.config import DROPDOWN_STYLE, LIGHT_GREEN, SECTION_CARD_STYLE, TEXT_MUTED
+from pyexploratory.config import DROPDOWN_STYLE, PRIMARY, SECTION_CARD_STYLE, TEXT_MUTED
 from pyexploratory.core.data_store import column_options, numeric_column_options, read_data
 
 CHART_TYPE_OPTIONS = [
@@ -64,7 +64,7 @@ def render() -> html.Div:
                     html.H5(
                         "Chart Builder",
                         style={
-                            "color": LIGHT_GREEN,
+                            "color": PRIMARY,
                             "fontWeight": "600",
                             "marginBottom": "16px",
                         },
@@ -167,7 +167,7 @@ def render() -> html.Div:
                                         id="generate-chart-btn",
                                         n_clicks=0,
                                         style={
-                                            "backgroundColor": LIGHT_GREEN,
+                                            "backgroundColor": PRIMARY,
                                             "color": "white",
                                             "borderRadius": "10px",
                                             "border": "none",
@@ -190,7 +190,7 @@ def render() -> html.Div:
             dcc.Loading(
                 id="loading-chart",
                 type="circle",
-                color=LIGHT_GREEN,
+                color=PRIMARY,
                 children=html.Div(
                     id="chart-container",
                     style={"minHeight": "400px", "padding": "10px"},

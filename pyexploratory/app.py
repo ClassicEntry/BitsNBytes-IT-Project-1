@@ -1,14 +1,15 @@
 """
 PyExploratory — Dash application entry point.
 
-Creates the Dash app, defines sidebar/content layout, and registers callbacks.
-Run with: python pyexploratory/app.py
+Creates the Dash app with 3-zone layout:
+- Sidebar (left, 200px)
+- Main workspace (center, fluid)
+- Step panel (right, 280px — only on data_analysis page)
 """
 
 import os
 import sys
 
-# Ensure project root is on sys.path so `pyexploratory` is importable as a package
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import dash
@@ -18,20 +19,22 @@ import plotly.express as px
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 
+from pyexploratory.components.step_panel import render as render_step_panel
 from pyexploratory.components.styles import DOWNLOAD_BUTTON_STYLE
 from pyexploratory.config import (
-    CONTENT_STYLE,
-    DARK_GREEN,
+    BG_DEEP,
+    BG_SURFACE,
+    BORDER_COLOR,
     DATA_FILE,
-    GREY,
-    SIDEBAR_BG,
-    SIDEBAR_STYLE,
+    PRIMARY,
+    PRIMARY_BUTTON_STYLE,
+    SIDEBAR_STYLE_V2,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
 )
 
-# Set the default template for Plotly Express
 px.defaults.template = "plotly_dark"
 
-# Create the Dash app
 app = Dash(
     __name__,
     pages_folder="pages",
@@ -40,106 +43,101 @@ app = Dash(
     suppress_callback_exceptions=True,
 )
 
-# Sidebar navigation
+# Sidebar
 sidebar = html.Div(
     [
+        html.Div(
+            "PyExploratory",
+            style={
+                "fontSize": "18px", "fontWeight": "700", "color": TEXT_PRIMARY,
+                "fontFamily": "'Inter', sans-serif", "padding": "0 0 40px 0",
+            },
+        ),
         dcc.Location(id="url", refresh=False),
         dbc.Nav(id="sidebar-nav", vertical=True, pills=True),
-    ]
-)
-
-# App layout
-app.layout = dbc.Container(
-    [
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.Div(
-                            "PyExploratory",
-                            style={
-                                "fontSize": 20,
-                                "textAlign": "Left",
-                                "fontWeight": "bold",
-                                "color": "#ffffff",
-                                "fontFamily": "Arial Black",
-                                "padding": "10px 10px 80px 10px",
-                            },
-                        ),
-                        sidebar,
-                        dcc.Download(id="download-data"),
-                        html.Button(
-                            "Download Data",
-                            id="btn-download",
-                            n_clicks=0,
-                            style=DOWNLOAD_BUTTON_STYLE,
-                        ),
-                        dcc.Download(id="download-script"),
-                        html.Button(
-                            "Export Script",
-                            id="btn-export-script",
-                            n_clicks=0,
-                            style=DOWNLOAD_BUTTON_STYLE,
-                        ),
-                        dcc.Upload(
-                            id="upload-script",
-                            children=html.Button(
-                                "Import Script",
-                                style=DOWNLOAD_BUTTON_STYLE,
-                            ),
-                            accept=".py",
-                            max_size=5 * 1024 * 1024,
-                        ),
-                        html.Div(id="import-script-feedback"),
-                    ],
-                    xs=4,
-                    sm=4,
-                    md=2,
-                    lg=2,
-                    xl=2,
-                    xxl=2,
-                    style=SIDEBAR_STYLE,
-                ),
-                dbc.Col(
-                    [dash.page_container],
-                    xs=8,
-                    sm=8,
-                    md=10,
-                    lg=10,
-                    xl=10,
-                    xxl=10,
-                    style=CONTENT_STYLE,
-                ),
-            ]
-        )
+        html.Hr(style={"borderColor": BORDER_COLOR, "margin": "20px 0"}),
+        dcc.Download(id="download-data"),
+        html.Button(
+            "Download Data", id="btn-download", n_clicks=0,
+            style={**PRIMARY_BUTTON_STYLE, "width": "100%", "marginBottom": "8px"},
+            className="btn-primary-glow",
+        ),
+        dcc.Download(id="download-script"),
+        html.Button(
+            "Export Script", id="btn-export-script", n_clicks=0,
+            style={**PRIMARY_BUTTON_STYLE, "width": "100%", "marginBottom": "8px"},
+            className="btn-primary-glow",
+        ),
+        dcc.Upload(
+            id="upload-script",
+            children=html.Button(
+                "Import Script",
+                style={**PRIMARY_BUTTON_STYLE, "width": "100%"},
+                className="btn-primary-glow",
+            ),
+            accept=".py",
+            max_size=5 * 1024 * 1024,
+        ),
+        html.Div(id="import-script-feedback", style={"marginTop": "8px"}),
     ],
-    fluid=True,
-    style={"position": "relative", "background-color": GREY},
+    style=SIDEBAR_STYLE_V2,
 )
 
-
-# ---------------------------------------------------------------------------
-# App-level callbacks (use @app.callback since they need the app instance)
-# ---------------------------------------------------------------------------
+# Layout
+app.layout = html.Div(
+    [
+        sidebar,
+        html.Div(id="step-panel-container"),
+        html.Div(
+            dash.page_container,
+            id="main-content",
+            style={
+                "marginLeft": "200px",
+                "minHeight": "100vh",
+                "backgroundColor": BG_SURFACE,
+            },
+        ),
+    ],
+    style={"backgroundColor": BG_SURFACE, "margin": 0, "padding": 0},
+)
 
 
 @app.callback(Output("sidebar-nav", "children"), [Input("url", "pathname")])
 def update_sidebar(pathname):
-    """Update sidebar navigation links based on current pathname."""
     return [
         dbc.NavLink(
-            [html.Div(page["name"], style={"color": "#ffffff"})],
+            [html.Div(page["name"], style={"color": TEXT_PRIMARY, "fontSize": "13px"})],
             href=page["path"],
             active="exact",
             style={
-                "background-color": (
-                    DARK_GREEN if page["path"] == pathname else SIDEBAR_BG
-                ),
-                "margin": "10px",
+                "backgroundColor": PRIMARY if page["path"] == pathname else "transparent",
+                "borderRadius": "6px",
+                "margin": "2px 0",
+                "padding": "8px 12px",
             },
         )
         for page in dash.page_registry.values()
     ]
+
+
+@app.callback(
+    Output("step-panel-container", "children"),
+    Output("main-content", "style"),
+    Input("url", "pathname"),
+)
+def toggle_step_panel(pathname):
+    if pathname == "/data_analysis":
+        return render_step_panel(), {
+            "marginLeft": "200px",
+            "marginRight": "280px",
+            "minHeight": "100vh",
+            "backgroundColor": BG_SURFACE,
+        }
+    return html.Div(), {
+        "marginLeft": "200px",
+        "minHeight": "100vh",
+        "backgroundColor": BG_SURFACE,
+    }
 
 
 @dash.callback(
@@ -148,13 +146,11 @@ def update_sidebar(pathname):
     prevent_initial_call=True,
 )
 def download_data(n_clicks):
-    """Download current data as Excel."""
     if n_clicks:
         df = pd.read_csv(DATA_FILE)
         return dcc.send_data_frame(df.to_excel, "mydata.xlsx")
 
 
-# Import callback modules to trigger their @dash.callback() registrations
 import pyexploratory.callbacks  # noqa: E402, F401
 
 if __name__ == "__main__":

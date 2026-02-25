@@ -23,7 +23,29 @@ LIGHT_BLUE = "#007BFF"
 DARK_BLUE = "#1d06ca"
 WHITE = "#f3f3f3"
 BLACK = "#000000"
-SIDEBAR_BG = "#282829"
+# ---------------------------------------------------------------------------
+# Colors — Design System v2
+# ---------------------------------------------------------------------------
+BG_DEEP = "#111113"
+BG_SURFACE = "#1a1a1d"
+BG_CARD = "#222226"
+BG_HOVER = "#2a2a30"
+BG_ACTIVE = "#333338"
+PRIMARY = "#00c46a"
+PRIMARY_DIM = "#00c46a33"
+TEXT_PRIMARY = "#f0f0f0"
+TEXT_SECONDARY = "#a0a0a0"
+TEXT_MUTED_V2 = "#666666"
+STEP_UPLOAD_COLOR = "#4a9eff"
+STEP_CLEAN_COLOR = "#00c46a"
+STEP_CHART_COLOR = "#ff9f43"
+STEP_ML_COLOR = "#a855f7"
+BORDER_COLOR = "#3a3a3b"
+ERROR_COLOR = "#ff6b6b"
+WARNING_COLOR = "#e67e22"
+INFO_COLOR = "#3498db"
+
+SIDEBAR_BG = BG_DEEP
 
 # ---------------------------------------------------------------------------
 # Tab styles
@@ -122,9 +144,9 @@ INPUT_STYLE = {
 # ---------------------------------------------------------------------------
 # Card / UI enhancement styles
 # ---------------------------------------------------------------------------
-CARD_BG = "#2d2d2d"
-CARD_BORDER = "#444444"
-TEXT_MUTED = "#aaaaaa"
+CARD_BG = BG_CARD
+CARD_BORDER = BORDER_COLOR
+TEXT_MUTED = TEXT_SECONDARY
 
 SECTION_CARD_STYLE = {
     "backgroundColor": CARD_BG,
@@ -147,4 +169,89 @@ UPLOAD_STYLE = {
     "backgroundColor": CARD_BG,
     "cursor": "pointer",
     "padding": "20px",
+}
+
+# ---------------------------------------------------------------------------
+# Design System v2 — Layout styles
+# ---------------------------------------------------------------------------
+SIDEBAR_STYLE_V2 = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "200px",
+    "padding": "20px 16px",
+    "background": f"linear-gradient(180deg, {BG_DEEP}, #0d0d10)",
+    "zIndex": 10,
+    "overflowY": "auto",
+    "borderRight": f"1px solid {BORDER_COLOR}",
+}
+
+CONTEXT_BAR_STYLE = {
+    "background": f"linear-gradient(90deg, {BG_SURFACE}, #1e1e22)",
+    "padding": "12px 20px",
+    "borderBottom": f"1px solid {BORDER_COLOR}",
+    "display": "flex",
+    "alignItems": "center",
+    "gap": "16px",
+    "color": TEXT_SECONDARY,
+    "fontSize": "13px",
+    "fontFamily": "'Inter', sans-serif",
+}
+
+MAIN_WORKSPACE_STYLE = {
+    "marginLeft": "200px",
+    "marginRight": "280px",
+    "minHeight": "100vh",
+    "backgroundColor": BG_SURFACE,
+    "padding": "0",
+}
+
+STEP_PANEL_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "right": 0,
+    "bottom": 0,
+    "width": "280px",
+    "background": f"linear-gradient(180deg, {BG_DEEP}, #0d0d10)",
+    "borderLeft": f"1px solid {BORDER_COLOR}",
+    "padding": "20px 12px",
+    "overflowY": "auto",
+    "zIndex": 10,
+}
+
+GLASS_CARD_STYLE = {
+    "backgroundColor": "rgba(34, 34, 38, 0.8)",
+    "backdropFilter": "blur(12px)",
+    "WebkitBackdropFilter": "blur(12px)",
+    "border": "1px solid rgba(255, 255, 255, 0.06)",
+    "borderRadius": "8px",
+    "padding": "16px",
+    "marginBottom": "12px",
+}
+
+PRIMARY_BUTTON_STYLE = {
+    "background": "linear-gradient(135deg, #00c46a, #00a85a)",
+    "color": "white",
+    "border": "none",
+    "borderRadius": "6px",
+    "padding": "8px 20px",
+    "fontWeight": "600",
+    "cursor": "pointer",
+    "fontFamily": "'Inter', sans-serif",
+    "fontSize": "13px",
+    "transition": "all 0.15s ease",
+}
+
+GHOST_BUTTON_STYLE = {
+    "backgroundColor": "transparent",
+    "color": TEXT_SECONDARY,
+    "border": f"1px solid {BORDER_COLOR}",
+    "borderRadius": "6px",
+    "padding": "8px 16px",
+    "fontWeight": "500",
+    "cursor": "pointer",
+    "fontFamily": "'Inter', sans-serif",
+    "fontSize": "13px",
+    "transition": "all 0.15s ease",
 }

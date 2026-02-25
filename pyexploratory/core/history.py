@@ -29,7 +29,10 @@ def save_snapshot(operation: str, column: str, description: str) -> None:
     log = get_history_log()
     idx = len(log)
     snapshot_path = os.path.join(HISTORY_DIR, f"snapshot_{idx}.csv")
-    shutil.copy2(DATA_FILE, snapshot_path)
+    try:
+        shutil.copy2(DATA_FILE, snapshot_path)
+    except OSError:
+        return  # silently skip if snapshot cannot be saved
     log.append({
         "index": idx,
         "operation": operation,
@@ -40,8 +43,11 @@ def save_snapshot(operation: str, column: str, description: str) -> None:
     # Trim to max history
     if len(log) > MAX_HISTORY:
         old = log.pop(0)
-        if os.path.exists(old["snapshot"]):
-            os.remove(old["snapshot"])
+        try:
+            if os.path.exists(old["snapshot"]):
+                os.remove(old["snapshot"])
+        except OSError:
+            pass
     _write_log(log)
     _redo_stack.clear()
 
@@ -52,14 +58,17 @@ def undo() -> Optional[pd.DataFrame]:
     if not log:
         return None
     entry = log.pop()
-    # Save current state for redo
-    redo_path = os.path.join(HISTORY_DIR, f"redo_{len(_redo_stack)}.csv")
-    shutil.copy2(DATA_FILE, redo_path)
-    _redo_stack.append(redo_path)
-    # Restore snapshot
-    shutil.copy2(entry["snapshot"], DATA_FILE)
-    if os.path.exists(entry["snapshot"]):
-        os.remove(entry["snapshot"])
+    try:
+        # Save current state for redo
+        redo_path = os.path.join(HISTORY_DIR, f"redo_{len(_redo_stack)}.csv")
+        shutil.copy2(DATA_FILE, redo_path)
+        _redo_stack.append(redo_path)
+        # Restore snapshot
+        shutil.copy2(entry["snapshot"], DATA_FILE)
+        if os.path.exists(entry["snapshot"]):
+            os.remove(entry["snapshot"])
+    except OSError:
+        return None
     _write_log(log)
     from pyexploratory.core.data_store import invalidate_cache
     invalidate_cache()
@@ -71,9 +80,12 @@ def redo() -> Optional[pd.DataFrame]:
     if not _redo_stack:
         return None
     redo_path = _redo_stack.pop()
-    shutil.copy2(redo_path, DATA_FILE)
-    if os.path.exists(redo_path):
-        os.remove(redo_path)
+    try:
+        shutil.copy2(redo_path, DATA_FILE)
+        if os.path.exists(redo_path):
+            os.remove(redo_path)
+    except OSError:
+        return None
     from pyexploratory.core.data_store import invalidate_cache
     invalidate_cache()
     return pd.read_csv(DATA_FILE)
@@ -82,14 +94,20 @@ def redo() -> Optional[pd.DataFrame]:
 def get_history_log() -> List[Dict]:
     """Read the history log from disk."""
     init_history()
-    with open(HISTORY_LOG_FILE) as f:
-        return json.load(f)
+    try:
+        with open(HISTORY_LOG_FILE) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        return []
 
 
 def clear_history() -> None:
     """Remove all history snapshots and reset the log."""
-    if os.path.exists(HISTORY_DIR):
-        shutil.rmtree(HISTORY_DIR)
+    try:
+        if os.path.exists(HISTORY_DIR):
+            shutil.rmtree(HISTORY_DIR)
+    except OSError:
+        pass
     init_history()
 
 

@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
-from pyexploratory.config import LIGHT_GREEN
+from pyexploratory.config import PRIMARY
 from pyexploratory.core import action_log
 from pyexploratory.core.data_store import (
     categorical_column_options,
@@ -122,7 +122,7 @@ def perform_machine_learning(
 
     valid_tasks = {"clustering", "classification", "decision_tree", "random_forest", "regression"}
     if task not in valid_tasks:
-        return html.Div("Select a valid task.", style={"color": "white"})
+        return html.Div()
 
     # Regression uses x-variable and regression-target (both numeric)
     if task == "regression":
@@ -253,7 +253,7 @@ def _render_clustering(df, x_variable, y_variable, n_clusters):
     fig_elbow.add_trace(
         go.Scatter(
             x=elbow["k_values"], y=elbow["inertias"], mode="lines+markers",
-            marker=dict(color=LIGHT_GREEN),
+            marker=dict(color=PRIMARY),
         )
     )
     fig_elbow.update_layout(
@@ -320,7 +320,7 @@ def _render_decision_tree(df, x_variable, y_variable, target, max_depth, test_si
 
     fig_imp = go.Figure(go.Bar(
         x=result.feature_importances, y=result.feature_names,
-        orientation="h", marker_color=LIGHT_GREEN,
+        orientation="h", marker_color=PRIMARY,
     ))
     fig_imp.update_layout(title="Feature Importances", **_DARK_LAYOUT)
 
@@ -345,7 +345,7 @@ def _render_random_forest(df, x_variable, y_variable, target, n_estimators, max_
 
     fig_imp = go.Figure(go.Bar(
         x=result.feature_importances, y=result.feature_names,
-        orientation="h", marker_color=LIGHT_GREEN,
+        orientation="h", marker_color=PRIMARY,
     ))
     fig_imp.update_layout(title="Feature Importances", **_DARK_LAYOUT)
 
@@ -372,7 +372,7 @@ def _render_regression(df, x_col, y_col, test_size):
     fig_pred = go.Figure()
     fig_pred.add_trace(go.Scatter(
         x=result.y_test, y=result.y_pred_test, mode="markers",
-        name="Predictions", marker=dict(color=LIGHT_GREEN, size=8),
+        name="Predictions", marker=dict(color=PRIMARY, size=8),
     ))
     # Perfect prediction line
     min_val = min(result.y_test.min(), result.y_pred_test.min())
@@ -389,7 +389,7 @@ def _render_regression(df, x_col, y_col, test_size):
     # Residual plot
     fig_resid = go.Figure(go.Scatter(
         x=result.y_pred_test, y=result.residuals, mode="markers",
-        marker=dict(color=LIGHT_GREEN, size=8),
+        marker=dict(color=PRIMARY, size=8),
     ))
     fig_resid.add_hline(y=0, line_dash="dash", line_color="red")
     fig_resid.update_layout(

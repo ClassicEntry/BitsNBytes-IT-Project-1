@@ -314,6 +314,9 @@ def _collect_imports(log: List[Dict]) -> str:
 
 def generate_script(action_log: List[Dict]) -> str:
     """Convert an action log into a standalone Python script string."""
+    # Filter out disabled steps before generating
+    action_log = [e for e in action_log if not e.get("disabled", False)]
+
     if not action_log:
         return (
             '"""PyExploratory session — no actions recorded."""\n\n'

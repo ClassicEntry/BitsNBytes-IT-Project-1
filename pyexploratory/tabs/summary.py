@@ -15,7 +15,7 @@ from pyexploratory.components.tables import (
     SUMMARY_DARK_HEADER_STYLE,
     SUMMARY_TABLE_STYLE,
 )
-from pyexploratory.config import LIGHT_GREEN, SECTION_CARD_STYLE, TEXT_MUTED
+from pyexploratory.config import PRIMARY, SECTION_CARD_STYLE, TEXT_MUTED, TEXT_SECONDARY
 from pyexploratory.core.data_store import read_data
 
 
@@ -36,7 +36,7 @@ def _metric_tile(label: str, value: str) -> dbc.Col:
                     html.Div(
                         value,
                         style={
-                            "color": LIGHT_GREEN,
+                            "color": PRIMARY,
                             "fontSize": "24px",
                             "fontWeight": "700",
                         },
@@ -83,9 +83,11 @@ def render() -> html.Div:
         className="mb-3",
     )
 
-    # --- Per-column cards ---
-    cards = []
-    for col in df.columns:
+    # --- Per-column cards (separated by type) ---
+    numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+    categorical_cols = [c for c in df.columns if c not in numeric_cols]
+
+    def _build_column_card(col):
         summary = df[col].describe().reset_index()
         summary.columns = ["Statistic", "Value"]
 
@@ -135,7 +137,7 @@ def render() -> html.Div:
                 y="count",
                 title=f"Distribution of {col}",
                 template="plotly_dark",
-                color_discrete_sequence=[LIGHT_GREEN],
+                color_discrete_sequence=[PRIMARY],
             )
 
         fig.update_layout(
@@ -150,7 +152,7 @@ def render() -> html.Div:
                     html.H5(
                         col,
                         style={
-                            "color": LIGHT_GREEN,
+                            "color": PRIMARY,
                             "fontWeight": "600",
                             "marginBottom": "12px",
                         },
@@ -161,6 +163,37 @@ def render() -> html.Div:
             ),
             style=SECTION_CARD_STYLE,
         )
-        cards.append(dbc.Col(card, xs=12, sm=6, lg=4, xl=3, className="mb-3"))
+        return dbc.Col(card, xs=12, sm=6, lg=4, xl=3, className="mb-3")
 
-    return html.Div([overview, dbc.Row(cards)])
+    _section_header_style = {
+        "color": TEXT_SECONDARY,
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "textTransform": "uppercase",
+        "letterSpacing": "1px",
+        "marginBottom": "12px",
+        "marginTop": "8px",
+        "paddingBottom": "6px",
+        "borderBottom": "1px solid #3a3a3b",
+    }
+
+    sections = [overview]
+
+    if numeric_cols:
+        sections.append(html.Div(
+            f"Numeric Columns ({len(numeric_cols)})",
+            style=_section_header_style,
+        ))
+        sections.append(dbc.Row([_build_column_card(c) for c in numeric_cols]))
+
+    if categorical_cols:
+        sections.append(html.Div(
+            f"Categorical Columns ({len(categorical_cols)})",
+            style=_section_header_style,
+        ))
+        sections.append(dbc.Row([_build_column_card(c) for c in categorical_cols]))
+
+    return html.Div(
+        sections,
+        style={"maxHeight": "70vh", "overflowY": "auto", "paddingRight": "4px"},
+    )

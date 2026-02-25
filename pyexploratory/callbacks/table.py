@@ -8,7 +8,7 @@ import json
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import html, no_update
+from dash import dash_table, dcc, html, no_update
 from dash.dependencies import Input, Output, State
 
 from pyexploratory.core import action_log
@@ -16,7 +16,185 @@ from pyexploratory.core.cleaning_ops import OPERATIONS, apply_operation
 from pyexploratory.core.data_store import read_data, write_data
 from pyexploratory.core import history
 from pyexploratory.core.validators import validate_cleaning_compatibility
+from pyexploratory.components.context_bar import render as render_context_bar
 from pyexploratory.tabs.table import DESTRUCTIVE_OPS
+
+# ---------------------------------------------------------------------------
+# Render data table in the workspace
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("table-workspace", "children"),
+    Output("table-controls", "children"),
+    Input("output-data-upload", "children"),
+    Input("cleaning-toast", "is_open"),
+)
+def render_workspace_table(*_):
+    """Render the editable data table in the main workspace."""
+    from pyexploratory.config import BG_CARD, GHOST_BUTTON_STYLE, PRIMARY_BUTTON_STYLE
+
+    try:
+        df = read_data()
+    except FileNotFoundError:
+        return html.Div(
+            "Upload a dataset to get started.",
+            style={"color": "#666666", "textAlign": "center", "padding": "60px 0"},
+        ), html.Div()
+
+    table = dash_table.DataTable(
+        id="table",
+        data=df.to_dict("records"),
+        columns=[{"name": i, "id": i} for i in df.columns],
+        page_action="native",
+        page_size=50,
+        style_table={"overflowX": "auto", "padding": "10px", "maxHeight": "60vh", "overflowY": "auto"},
+        style_cell={
+            "textAlign": "center",
+            "backgroundColor": BG_CARD,
+            "color": "#e0e0e0",
+            "border": "1px solid #2a2a30",
+            "fontFamily": "'JetBrains Mono', monospace",
+            "fontSize": "12px",
+        },
+        style_header={
+            "backgroundColor": "#1a1a1d",
+            "fontWeight": "600",
+            "color": "#a0a0a0",
+            "textTransform": "uppercase",
+            "letterSpacing": "0.5px",
+            "fontSize": "11px",
+            "fontFamily": "'Inter', sans-serif",
+            "borderBottom": "2px solid #3a3a3b",
+        },
+        editable=True,
+    )
+
+    controls = [
+        html.Button(
+            "Save Changes", id="save-button",
+            style={**PRIMARY_BUTTON_STYLE, "padding": "6px 16px"},
+            className="btn-primary-glow",
+        ),
+        html.Button(
+            "Undo", id="undo-btn", n_clicks=0,
+            style={**GHOST_BUTTON_STYLE, "borderColor": "#e67e22", "color": "#e67e22"},
+        ),
+        html.Button(
+            "Redo", id="redo-btn", n_clicks=0,
+            style={**GHOST_BUTTON_STYLE, "borderColor": "#3498db", "color": "#3498db"},
+        ),
+    ]
+
+    return table, controls
+
+
+# ---------------------------------------------------------------------------
+# Refresh context bar when data changes
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("context-bar-container", "children"),
+    Input("output-data-upload", "children"),
+    Input("cleaning-toast", "is_open"),
+)
+def refresh_context_bar(*_):
+    """Re-render the context bar when data is loaded or modified."""
+    return render_context_bar()
+
+
+# ---------------------------------------------------------------------------
+# Show cleaning panel when "Clean" is selected from + menu
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("cleaning-panel", "style"),
+    Output("add-step-menu", "style", allow_duplicate=True),
+    Input("menu-clean", "n_clicks"),
+    State("cleaning-panel", "style"),
+    prevent_initial_call=True,
+)
+def show_cleaning_panel(n_clicks, current_style):
+    """Toggle the inline cleaning form visibility and close the step menu."""
+    menu_hidden = {"display": "none"}
+    if not n_clicks:
+        return no_update, no_update
+    if current_style and current_style.get("display") == "block":
+        return {"display": "none", "padding": "0 20px", "marginBottom": "12px"}, menu_hidden
+    return {"display": "block", "padding": "0 20px", "marginBottom": "12px"}, menu_hidden
+
+
+# ---------------------------------------------------------------------------
+# Show chart builder when "Visualize" is selected from + menu
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("chart-panel-wrapper", "style"),
+    Output("add-step-menu", "style", allow_duplicate=True),
+    Input("menu-chart", "n_clicks"),
+    State("chart-panel-wrapper", "style"),
+    prevent_initial_call=True,
+)
+def show_chart_panel(n_clicks, current_style):
+    """Toggle the chart builder visibility and close the step menu."""
+    menu_hidden = {"display": "none"}
+    if not n_clicks:
+        return no_update, no_update
+    if current_style and current_style.get("display") == "block":
+        return {"display": "none", "padding": "0 20px"}, menu_hidden
+    return {"display": "block", "padding": "0 20px"}, menu_hidden
+
+
+# ---------------------------------------------------------------------------
+# Show ML panel when "Machine Learning" is selected from + menu
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("ml-panel-wrapper", "style"),
+    Output("add-step-menu", "style", allow_duplicate=True),
+    Input("menu-ml", "n_clicks"),
+    State("ml-panel-wrapper", "style"),
+    prevent_initial_call=True,
+)
+def show_ml_panel(n_clicks, current_style):
+    """Toggle the ML panel visibility and close the step menu."""
+    menu_hidden = {"display": "none"}
+    if not n_clicks:
+        return no_update, no_update
+    if current_style and current_style.get("display") == "block":
+        return {"display": "none", "padding": "0 20px"}, menu_hidden
+    return {"display": "block", "padding": "0 20px"}, menu_hidden
+
+
+# ---------------------------------------------------------------------------
+# Toggle summary stats overlay
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("summary-overlay", "children"),
+    Output("summary-overlay", "style"),
+    Output("add-step-menu", "style", allow_duplicate=True),
+    Input("menu-summary", "n_clicks"),
+    State("summary-overlay", "style"),
+    prevent_initial_call=True,
+)
+def toggle_summary(n_clicks, current_style):
+    """Toggle the summary stats overlay above the table and close the step menu."""
+    menu_hidden = {"display": "none"}
+    if not n_clicks:
+        return no_update, no_update, no_update
+
+    if current_style and current_style.get("display") == "block":
+        return html.Div(), {"display": "none", "padding": "0 20px"}, menu_hidden
+
+    from pyexploratory.tabs.summary import render as render_summary
+    return render_summary(), {"display": "block", "padding": "0 20px", "marginBottom": "12px"}, menu_hidden
+
 
 # ---------------------------------------------------------------------------
 # Save inline table edits

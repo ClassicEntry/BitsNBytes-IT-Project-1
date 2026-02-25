@@ -50,7 +50,12 @@ def fillna_op(
         if pd.api.types.is_numeric_dtype(df[col]):
             fill_value = df[col].mean()
         else:
-            fill_value = df[col].mode()[0]
+            mode = df[col].mode()
+            if mode.empty:
+                raise ValueError(
+                    f"Cannot auto-fill column '{col}': no non-null values to compute mode."
+                )
+            fill_value = mode[0]
     df[col] = df[col].fillna(fill_value)
     return df
 

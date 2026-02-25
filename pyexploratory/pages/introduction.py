@@ -1,12 +1,12 @@
 """
-This file contains the code for the Introduction page of the Data Analysis App.
+Introduction page — welcome screen for PyExploratory.
 """
 
 import dash
-import dash_bootstrap_components as dbc
 from dash import html
 
-# Register the page with Dash
+from pyexploratory.config import BG_SURFACE, PRIMARY, TEXT_PRIMARY, TEXT_SECONDARY
+
 dash.register_page(
     __name__,
     path="/",
@@ -14,55 +14,94 @@ dash.register_page(
     order=1,
 )
 
-# Define the layout for the Introduction page
-layout = dbc.Container(
+
+def _step_item(number: str, title: str, description: str) -> html.Div:
+    """Render a single getting-started step."""
+    return html.Div(
+        [
+            html.Div(
+                number,
+                style={
+                    "width": "32px",
+                    "height": "32px",
+                    "borderRadius": "50%",
+                    "background": f"linear-gradient(135deg, {PRIMARY}, #00a85a)",
+                    "color": "white",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                    "fontSize": "14px",
+                    "fontWeight": "700",
+                    "flexShrink": "0",
+                },
+            ),
+            html.Div(
+                [
+                    html.Span(title, style={"color": TEXT_PRIMARY, "fontWeight": "600", "fontSize": "14px"}),
+                    html.Span(
+                        f" — {description}",
+                        style={"color": TEXT_SECONDARY, "fontSize": "14px"},
+                    ),
+                ],
+            ),
+        ],
+        style={
+            "display": "flex",
+            "alignItems": "center",
+            "gap": "16px",
+            "padding": "12px 0",
+            "borderBottom": "1px solid #3a3a3b",
+            "textAlign": "left",
+        },
+    )
+
+
+layout = html.Div(
     [
-        dbc.Row(
+        html.Div(
             [
-                dbc.Col(
+                html.H1(
+                    "PyExploratory",
+                    style={
+                        "color": TEXT_PRIMARY,
+                        "fontWeight": "700",
+                        "fontSize": "48px",
+                        "fontFamily": "'Inter', sans-serif",
+                        "marginBottom": "24px",
+                    },
+                ),
+                html.P(
+                    "An interactive data analysis app built with Python, Dash, and Plotly. "
+                    "Import data, clean it, visualize it, and run machine learning tasks.",
+                    style={
+                        "color": TEXT_SECONDARY,
+                        "fontSize": "18px",
+                        "lineHeight": "1.6",
+                        "maxWidth": "600px",
+                        "marginBottom": "32px",
+                    },
+                ),
+                html.Div(
                     [
-                        html.H1(
-                            "Introduction",
-                            className="mb-4 text-light text-center fw-bold fs-1",
-                        ),
-                        html.H3(
-                            "PyExploratory is a Data Analysis App written in Python using Dash and Plotly. "
-                            "You can import data, clean data, and visualise data. ",
-                            className="mb-4 text-light text-center",
-                        ),
-                        html.H3(
-                            "To get started, click on the Data Analysis Tab in the sidebar and click or drag to import a CSV, Excel, or JSON file. "
-                            "Once you have imported the data, you can view your data.",
-                            className="mb-4 text-light text-center",
-                        ),
-                        html.H3(
-                            "You can perform data cleaning operations in the Table tab.",
-                            className="mb-4 text-light text-center",
-                        ),
-                        html.H3(
-                            "Additionally, explore machine learning capabilities in the Machine Learning tab.",
-                            className="mb-4 text-light text-center",
-                        ),
-                        html.H3(
-                            "To download your processed data, use the 'Download Data' button in the sidebar.",
-                            className="mb-4 text-light text-center",
-                        ),
+                        _step_item("1", "Upload", "Import a CSV, Excel, or JSON file from the Data Analysis page"),
+                        _step_item("2", "Explore", "View summary stats, edit data in the table, and clean with 18 operations"),
+                        _step_item("3", "Visualize", "Build from 14 chart types including scatter, heatmap, and treemap"),
+                        _step_item("4", "Analyze", "Run KMeans, SVM, Decision Tree, Random Forest, or Linear Regression"),
+                        _step_item("5", "Export", "Download your data or export your session as a replayable Python script"),
                     ],
-                    style={"padding": "20px"},  # Add padding to the column
+                    style={"maxWidth": "600px"},
                 ),
             ],
             style={
-                "margin": "0",
-                "width": "80%",
-            },  # Remove margin and set width to 100% for the row
+                "display": "flex",
+                "flexDirection": "column",
+                "alignItems": "center",
+                "justifyContent": "center",
+                "textAlign": "center",
+                "padding": "80px 40px",
+                "minHeight": "100vh",
+            },
         ),
     ],
-    fluid=True,
-    style={
-        "height": "100vh",
-        "background-color": "#3f3f3f",
-        "padding": "1rem",
-        "margin": "0",
-        "position": "fixed",
-    },  # Set background color and padding
+    style={"backgroundColor": BG_SURFACE, "minHeight": "100vh"},
 )

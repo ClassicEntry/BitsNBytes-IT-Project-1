@@ -13,9 +13,9 @@ import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
-from pyexploratory.config import LIGHT_GREEN
+from pyexploratory.config import PRIMARY
 from pyexploratory.core import action_log
-from pyexploratory.core.data_store import read_data
+from pyexploratory.core.data_store import column_options, numeric_column_options, read_data
 from pyexploratory.tabs.charts import CHART_CONTROLS
 
 _DARK_LAYOUT = dict(
@@ -23,6 +23,33 @@ _DARK_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
 )
+
+
+# ---------------------------------------------------------------------------
+# Populate chart dropdowns when data changes
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    [
+        Output("chart-x-dropdown", "options"),
+        Output("chart-y-dropdown", "options"),
+        Output("chart-color-dropdown", "options"),
+        Output("chart-size-dropdown", "options"),
+    ],
+    Input("output-data-upload", "children"),
+    Input("cleaning-toast", "is_open"),
+)
+def populate_chart_dropdowns(*_):
+    """Populate chart column dropdowns when data is loaded or modified."""
+    try:
+        df = read_data()
+    except FileNotFoundError:
+        return [], [], [], []
+
+    col_opts = column_options(df)
+    num_opts = numeric_column_options(df)
+    return col_opts, col_opts, col_opts, num_opts
 
 
 # ---------------------------------------------------------------------------

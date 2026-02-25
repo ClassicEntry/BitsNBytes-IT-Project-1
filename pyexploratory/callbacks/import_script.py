@@ -12,7 +12,7 @@ import dash
 from dash import html
 from dash.dependencies import Input, Output, State
 
-from pyexploratory.config import DATA_FILE
+from pyexploratory.config import DATA_FILE, ERROR_COLOR, PRIMARY
 from pyexploratory.core import action_log
 from pyexploratory.core.cleaning_ops import apply_operation
 from pyexploratory.core.data_store import read_data, write_data
@@ -34,7 +34,7 @@ def import_script(contents, filename):
     if not os.path.exists(DATA_FILE):
         return html.Div(
             "Please upload a dataset before importing a script.",
-            style={"color": "#ff6b6b", "marginTop": "6px", "fontSize": "13px"},
+            style={"color": ERROR_COLOR, "marginTop": "6px", "fontSize": "13px"},
         )
 
     # --- Decode base64 upload ---
@@ -44,7 +44,7 @@ def import_script(contents, filename):
     except Exception:
         return html.Div(
             "Failed to read the uploaded file.",
-            style={"color": "#ff6b6b", "marginTop": "6px", "fontSize": "13px"},
+            style={"color": ERROR_COLOR, "marginTop": "6px", "fontSize": "13px"},
         )
 
     # --- Parse script into action entries ---
@@ -52,7 +52,7 @@ def import_script(contents, filename):
     if not entries:
         return html.Div(
             "No actions found in the script.",
-            style={"color": "#ff6b6b", "marginTop": "6px", "fontSize": "13px"},
+            style={"color": ERROR_COLOR, "marginTop": "6px", "fontSize": "13px"},
         )
 
     # --- Reset log and replay ---
@@ -119,7 +119,7 @@ def import_script(contents, filename):
     children = [
         html.Div(
             msg,
-            style={"color": "#56D300", "marginTop": "6px", "fontSize": "13px"},
+            style={"color": PRIMARY, "marginTop": "6px", "fontSize": "13px"},
         )
     ]
 
@@ -127,7 +127,7 @@ def import_script(contents, filename):
         children.append(
             html.Div(
                 f"{len(errors)} error(s): {'; '.join(errors)}",
-                style={"color": "#ff6b6b", "marginTop": "4px", "fontSize": "12px"},
+                style={"color": ERROR_COLOR, "marginTop": "4px", "fontSize": "12px"},
             )
         )
 

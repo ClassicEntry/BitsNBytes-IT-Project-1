@@ -7,8 +7,10 @@ Import from here rather than duplicating inline dicts.
 from pyexploratory.config import (
     DARK_GREEN,
     DROPDOWN_STYLE,
+    GHOST_BUTTON_STYLE,
     GREEN_BUTTON_STYLE,
     INPUT_STYLE,
+    PRIMARY_BUTTON_STYLE,
     WHITE,
 )
 
@@ -20,22 +22,10 @@ __all__ = [
     "SAVE_BUTTON_STYLE",
     "DOWNLOAD_BUTTON_STYLE",
     "CLEAN_BUTTON_STYLE",
+    "PRIMARY_BUTTON_STYLE",
+    "GHOST_BUTTON_STYLE",
 ]
 
-SAVE_BUTTON_STYLE = {
-    **GREEN_BUTTON_STYLE,
-    "margin": "1px 0px 0px 10px",
-    "width": "90%",
-}
-
-DOWNLOAD_BUTTON_STYLE = {
-    **GREEN_BUTTON_STYLE,
-    "margin": "10px 10px 0px 0px",
-    "width": "100%",
-}
-
-CLEAN_BUTTON_STYLE = {
-    **GREEN_BUTTON_STYLE,
-    "margin": "1px 10px 10px 10px",
-    "width": "90%",
-}
+SAVE_BUTTON_STYLE = {**PRIMARY_BUTTON_STYLE, "width": "auto"}
+DOWNLOAD_BUTTON_STYLE = {**PRIMARY_BUTTON_STYLE, "width": "100%", "marginBottom": "8px"}
+CLEAN_BUTTON_STYLE = {**PRIMARY_BUTTON_STYLE, "width": "auto"}
